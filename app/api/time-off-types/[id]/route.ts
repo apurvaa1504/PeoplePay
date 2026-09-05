@@ -35,6 +35,8 @@ export async function PATCH(
 
   const updated = await db.orm.public.TimeOffType.where({ id }).update({
     name: body.name ?? existing.name,
+    unit: body.unit ?? existing.unit,
+    requiresAllocation: body.requiresAllocation ?? existing.requiresAllocation,
     requiresApproval: body.requiresApproval ?? existing.requiresApproval,
     payrollIntegration: body.payrollIntegration ?? existing.payrollIntegration,
   });

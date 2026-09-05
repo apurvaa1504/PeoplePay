@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { api, ApiError } from "@/lib/apiClient";
 import { Button } from "@/components/ui/Button";
+import { Input } from "@/components/ui/Input";
 import { Badge } from "@/components/ui/Badge";
 
 interface TimeOffRequest {
@@ -28,6 +29,8 @@ interface TimeOffType {
   name: string;
 }
 
+const STATUS_ORDER: Record<string, number> = { PENDING: 0, APPROVED: 1, REFUSED: 1 };
+
 export default function TimeOffRequestsPage() {
   const [requests, setRequests] = useState<TimeOffRequest[]>([]);
   const [employees, setEmployees] = useState<Employee[]>([]);
@@ -35,6 +38,7 @@ export default function TimeOffRequestsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [actioningId, setActioningId] = useState<string | null>(null);
+  const [search, setSearch] = useState("");
 
   async function loadAll() {
     setLoading(true);
@@ -69,6 +73,16 @@ export default function TimeOffRequestsPage() {
     return type ? type.name : id;
   }
 
+  const visibleRequests = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    const filtered = q
+      ? requests.filter((r) => employeeName(r.employeeId).toLowerCase().includes(q))
+      : requests;
+
+    // Pending requests first, since those need action; decided ones after.
+    return [...filtered].sort((a, b) => STATUS_ORDER[a.status] - STATUS_ORDER[b.status]);
+  }, [requests, employees, search]);
+
   async function handleDecision(id: string, decision: "APPROVED" | "REFUSED") {
     setActioningId(id);
     setError("");
@@ -96,10 +110,18 @@ export default function TimeOffRequestsPage() {
       </div>
 
       {error && (
-        <div className="mb-4 rounded-md bg-[#FAECEC] border border-[#E9C3C3] px-3 py-2 text-xs text-[#9A4E4E] font-medium">
+        <div className="fixed top-4 left-1/2 -translate-x-1/2 z-[100] rounded-md bg-[#FAECEC] border border-[#E9C3C3] px-4 py-2.5 text-xs text-[#9A4E4E] font-medium shadow-lg max-w-lg">
           {error}
         </div>
       )}
+
+      <div className="mb-4">
+        <Input
+          placeholder="Search by employee name..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+        />
+      </div>
 
       <div className="bg-white rounded-lg border border-[#E8E3EA] overflow-hidden">
         <table className="w-full text-sm">
@@ -117,10 +139,10 @@ export default function TimeOffRequestsPage() {
             {loading && (
               <tr><td colSpan={6} className="px-4 py-6 text-center text-[#77717B] text-sm">Loading...</td></tr>
             )}
-            {!loading && requests.length === 0 && (
-              <tr><td colSpan={6} className="px-4 py-6 text-center text-[#77717B] text-sm">No requests yet</td></tr>
+            {!loading && visibleRequests.length === 0 && (
+              <tr><td colSpan={6} className="px-4 py-6 text-center text-[#77717B] text-sm">No requests found</td></tr>
             )}
-            {requests.map((r) => (
+            {visibleRequests.map((r) => (
               <tr key={r.id} className="border-b border-[#F3F2F5] last:border-0">
                 <td className="px-4 py-3 font-medium text-[#26232A]">{employeeName(r.employeeId)}</td>
                 <td className="px-4 py-3 text-[#524E57]">{typeName(r.timeOffTypeId)}</td>
