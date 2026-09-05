@@ -30,7 +30,14 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: "hr_manager@peoplepay.com", password: "demo" }),
-      }).catch(() => {});
+      })
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.token) {
+            localStorage.setItem("peoplepay_token", data.token);
+          }
+        })
+        .catch(() => {});
     }
   }, []);
 
