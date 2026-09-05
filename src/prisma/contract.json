@@ -4,32 +4,252 @@
   "target": "postgres",
   "profileHash": "3916f444a8a17ad749191acf9e08dad97d1a327b88c2f1d45d12f240296aa8b2",
   "roots": {
-    "post": {
-      "model": "Post",
+    "allocations": {
+      "model": "Allocation",
       "namespace": "public"
     },
-    "user": {
+    "attendances": {
+      "model": "Attendance",
+      "namespace": "public"
+    },
+    "contracts": {
+      "model": "Contract",
+      "namespace": "public"
+    },
+    "employees": {
+      "model": "Employee",
+      "namespace": "public"
+    },
+    "payruns": {
+      "model": "Payrun",
+      "namespace": "public"
+    },
+    "payslip_lines": {
+      "model": "PayslipLine",
+      "namespace": "public"
+    },
+    "payslips": {
+      "model": "Payslip",
+      "namespace": "public"
+    },
+    "salary_rules": {
+      "model": "SalaryRule",
+      "namespace": "public"
+    },
+    "salary_structure_rules": {
+      "model": "SalaryStructureRule",
+      "namespace": "public"
+    },
+    "salary_structures": {
+      "model": "SalaryStructure",
+      "namespace": "public"
+    },
+    "schedule_lines": {
+      "model": "ScheduleLine",
+      "namespace": "public"
+    },
+    "time_off_requests": {
+      "model": "TimeOffRequest",
+      "namespace": "public"
+    },
+    "time_off_types": {
+      "model": "TimeOffType",
+      "namespace": "public"
+    },
+    "users": {
       "model": "User",
+      "namespace": "public"
+    },
+    "working_schedules": {
+      "model": "WorkingSchedule",
       "namespace": "public"
     }
   },
   "domain": {
     "namespaces": {
       "public": {
+        "enum": {
+          "AttendanceStatus": {
+            "codecId": "pg/text@1",
+            "members": [
+              {
+                "name": "PRESENT",
+                "value": "PRESENT"
+              },
+              {
+                "name": "LATE",
+                "value": "LATE"
+              },
+              {
+                "name": "ABSENT",
+                "value": "ABSENT"
+              },
+              {
+                "name": "OVERTIME",
+                "value": "OVERTIME"
+              },
+              {
+                "name": "MANUAL_CORRECTION",
+                "value": "MANUAL_CORRECTION"
+              }
+            ]
+          },
+          "ComputationMethod": {
+            "codecId": "pg/text@1",
+            "members": [
+              {
+                "name": "FIXED",
+                "value": "FIXED"
+              },
+              {
+                "name": "PERCENTAGE",
+                "value": "PERCENTAGE"
+              },
+              {
+                "name": "FORMULA",
+                "value": "FORMULA"
+              }
+            ]
+          },
+          "ContractStatus": {
+            "codecId": "pg/text@1",
+            "members": [
+              {
+                "name": "DRAFT",
+                "value": "DRAFT"
+              },
+              {
+                "name": "ACTIVE",
+                "value": "ACTIVE"
+              },
+              {
+                "name": "EXPIRED",
+                "value": "EXPIRED"
+              }
+            ]
+          },
+          "EmployeeStatus": {
+            "codecId": "pg/text@1",
+            "members": [
+              {
+                "name": "ACTIVE",
+                "value": "ACTIVE"
+              },
+              {
+                "name": "INACTIVE",
+                "value": "INACTIVE"
+              }
+            ]
+          },
+          "PayrunStatus": {
+            "codecId": "pg/text@1",
+            "members": [
+              {
+                "name": "DRAFT",
+                "value": "DRAFT"
+              },
+              {
+                "name": "COMPUTED",
+                "value": "COMPUTED"
+              },
+              {
+                "name": "VALIDATED",
+                "value": "VALIDATED"
+              },
+              {
+                "name": "PAID",
+                "value": "PAID"
+              }
+            ]
+          },
+          "Role": {
+            "codecId": "pg/text@1",
+            "members": [
+              {
+                "name": "EMPLOYEE",
+                "value": "EMPLOYEE"
+              },
+              {
+                "name": "HR_MANAGER",
+                "value": "HR_MANAGER"
+              },
+              {
+                "name": "HR_PAYROLL_USER",
+                "value": "HR_PAYROLL_USER"
+              },
+              {
+                "name": "HR_PAYROLL_MANAGER",
+                "value": "HR_PAYROLL_MANAGER"
+              },
+              {
+                "name": "ADMIN",
+                "value": "ADMIN"
+              }
+            ]
+          },
+          "SalaryCategory": {
+            "codecId": "pg/text@1",
+            "members": [
+              {
+                "name": "BASIC",
+                "value": "BASIC"
+              },
+              {
+                "name": "ALLOWANCE",
+                "value": "ALLOWANCE"
+              },
+              {
+                "name": "GROSS",
+                "value": "GROSS"
+              },
+              {
+                "name": "DEDUCTION",
+                "value": "DEDUCTION"
+              },
+              {
+                "name": "NET",
+                "value": "NET"
+              }
+            ]
+          },
+          "TimeOffRequestStatus": {
+            "codecId": "pg/text@1",
+            "members": [
+              {
+                "name": "PENDING",
+                "value": "PENDING"
+              },
+              {
+                "name": "APPROVED",
+                "value": "APPROVED"
+              },
+              {
+                "name": "REFUSED",
+                "value": "REFUSED"
+              }
+            ]
+          },
+          "TimeOffUnit": {
+            "codecId": "pg/text@1",
+            "members": [
+              {
+                "name": "DAYS",
+                "value": "DAYS"
+              },
+              {
+                "name": "HOURS",
+                "value": "HOURS"
+              }
+            ]
+          }
+        },
         "models": {
-          "Post": {
+          "Allocation": {
             "fields": {
-              "authorId": {
+              "allocated": {
                 "nullable": false,
                 "type": {
-                  "codecId": "pg/int4@1",
-                  "kind": "scalar"
-                }
-              },
-              "content": {
-                "nullable": true,
-                "type": {
-                  "codecId": "pg/text@1",
+                  "codecId": "pg/float8@1",
                   "kind": "scalar"
                 }
               },
@@ -40,22 +260,43 @@
                   "kind": "scalar"
                 }
               },
-              "id": {
-                "nullable": false,
-                "type": {
-                  "codecId": "pg/int4@1",
-                  "kind": "scalar"
-                }
-              },
-              "title": {
+              "employeeId": {
                 "nullable": false,
                 "type": {
                   "codecId": "pg/text@1",
                   "kind": "scalar"
                 }
               },
-              "updatedAt": {
+              "id": {
                 "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "taken": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/float8@1",
+                  "kind": "scalar"
+                }
+              },
+              "timeOffTypeId": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "validFrom": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "kind": "scalar"
+                }
+              },
+              "validTo": {
+                "nullable": true,
                 "type": {
                   "codecId": "pg/timestamptz-string@1",
                   "kind": "scalar"
@@ -63,11 +304,519 @@
               }
             },
             "relations": {
-              "author": {
+              "employee": {
                 "cardinality": "N:1",
                 "on": {
                   "localFields": [
-                    "authorId"
+                    "employeeId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
+                },
+                "to": {
+                  "model": "Employee",
+                  "namespace": "public"
+                }
+              },
+              "timeOffType": {
+                "cardinality": "N:1",
+                "on": {
+                  "localFields": [
+                    "timeOffTypeId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
+                },
+                "to": {
+                  "model": "TimeOffType",
+                  "namespace": "public"
+                }
+              }
+            },
+            "storage": {
+              "fields": {
+                "allocated": {
+                  "column": "allocated"
+                },
+                "createdAt": {
+                  "column": "createdAt"
+                },
+                "employeeId": {
+                  "column": "employeeId"
+                },
+                "id": {
+                  "column": "id"
+                },
+                "taken": {
+                  "column": "taken"
+                },
+                "timeOffTypeId": {
+                  "column": "timeOffTypeId"
+                },
+                "validFrom": {
+                  "column": "validFrom"
+                },
+                "validTo": {
+                  "column": "validTo"
+                }
+              },
+              "namespaceId": "public",
+              "table": "allocations"
+            }
+          },
+          "Attendance": {
+            "fields": {
+              "checkIn": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "kind": "scalar"
+                }
+              },
+              "checkOut": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "kind": "scalar"
+                }
+              },
+              "correctedAt": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "kind": "scalar"
+                }
+              },
+              "correctedBy": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "employeeId": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "id": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "status": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                },
+                "valueSet": {
+                  "entityKind": "enum",
+                  "entityName": "AttendanceStatus",
+                  "namespaceId": "public",
+                  "plane": "domain"
+                }
+              },
+              "workedHours": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/float8@1",
+                  "kind": "scalar"
+                }
+              }
+            },
+            "relations": {
+              "employee": {
+                "cardinality": "N:1",
+                "on": {
+                  "localFields": [
+                    "employeeId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
+                },
+                "to": {
+                  "model": "Employee",
+                  "namespace": "public"
+                }
+              }
+            },
+            "storage": {
+              "fields": {
+                "checkIn": {
+                  "column": "checkIn"
+                },
+                "checkOut": {
+                  "column": "checkOut"
+                },
+                "correctedAt": {
+                  "column": "correctedAt"
+                },
+                "correctedBy": {
+                  "column": "correctedBy"
+                },
+                "employeeId": {
+                  "column": "employeeId"
+                },
+                "id": {
+                  "column": "id"
+                },
+                "status": {
+                  "column": "status"
+                },
+                "workedHours": {
+                  "column": "workedHours"
+                }
+              },
+              "namespaceId": "public",
+              "table": "attendances"
+            }
+          },
+          "Contract": {
+            "fields": {
+              "createdAt": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "kind": "scalar"
+                }
+              },
+              "department": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "employeeId": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "endDate": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "kind": "scalar"
+                }
+              },
+              "id": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "jobPosition": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "startDate": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "kind": "scalar"
+                }
+              },
+              "status": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                },
+                "valueSet": {
+                  "entityKind": "enum",
+                  "entityName": "ContractStatus",
+                  "namespaceId": "public",
+                  "plane": "domain"
+                }
+              },
+              "structureId": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "wage": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/float8@1",
+                  "kind": "scalar"
+                }
+              }
+            },
+            "relations": {
+              "employee": {
+                "cardinality": "N:1",
+                "on": {
+                  "localFields": [
+                    "employeeId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
+                },
+                "to": {
+                  "model": "Employee",
+                  "namespace": "public"
+                }
+              },
+              "structure": {
+                "cardinality": "N:1",
+                "on": {
+                  "localFields": [
+                    "structureId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
+                },
+                "to": {
+                  "model": "SalaryStructure",
+                  "namespace": "public"
+                }
+              }
+            },
+            "storage": {
+              "fields": {
+                "createdAt": {
+                  "column": "createdAt"
+                },
+                "department": {
+                  "column": "department"
+                },
+                "employeeId": {
+                  "column": "employeeId"
+                },
+                "endDate": {
+                  "column": "endDate"
+                },
+                "id": {
+                  "column": "id"
+                },
+                "jobPosition": {
+                  "column": "jobPosition"
+                },
+                "startDate": {
+                  "column": "startDate"
+                },
+                "status": {
+                  "column": "status"
+                },
+                "structureId": {
+                  "column": "structureId"
+                },
+                "wage": {
+                  "column": "wage"
+                }
+              },
+              "namespaceId": "public",
+              "table": "contracts"
+            }
+          },
+          "Employee": {
+            "fields": {
+              "createdAt": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "kind": "scalar"
+                }
+              },
+              "department": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "firstName": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "id": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "jobPosition": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "lastName": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "managerId": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "scheduleId": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "status": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                },
+                "valueSet": {
+                  "entityKind": "enum",
+                  "entityName": "EmployeeStatus",
+                  "namespaceId": "public",
+                  "plane": "domain"
+                }
+              },
+              "userId": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              }
+            },
+            "relations": {
+              "allocations": {
+                "cardinality": "1:N",
+                "on": {
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "employeeId"
+                  ]
+                },
+                "to": {
+                  "model": "Allocation",
+                  "namespace": "public"
+                }
+              },
+              "attendances": {
+                "cardinality": "1:N",
+                "on": {
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "employeeId"
+                  ]
+                },
+                "to": {
+                  "model": "Attendance",
+                  "namespace": "public"
+                }
+              },
+              "contracts": {
+                "cardinality": "1:N",
+                "on": {
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "employeeId"
+                  ]
+                },
+                "to": {
+                  "model": "Contract",
+                  "namespace": "public"
+                }
+              },
+              "manager": {
+                "cardinality": "N:1",
+                "on": {
+                  "localFields": [
+                    "managerId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
+                },
+                "to": {
+                  "model": "Employee",
+                  "namespace": "public"
+                }
+              },
+              "reports": {
+                "cardinality": "1:N",
+                "on": {
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "managerId"
+                  ]
+                },
+                "to": {
+                  "model": "Employee",
+                  "namespace": "public"
+                }
+              },
+              "schedule": {
+                "cardinality": "N:1",
+                "on": {
+                  "localFields": [
+                    "scheduleId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
+                },
+                "to": {
+                  "model": "WorkingSchedule",
+                  "namespace": "public"
+                }
+              },
+              "timeOffRequests": {
+                "cardinality": "1:N",
+                "on": {
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "employeeId"
+                  ]
+                },
+                "to": {
+                  "model": "TimeOffRequest",
+                  "namespace": "public"
+                }
+              },
+              "user": {
+                "cardinality": "N:1",
+                "on": {
+                  "localFields": [
+                    "userId"
                   ],
                   "targetFields": [
                     "id"
@@ -81,27 +830,1033 @@
             },
             "storage": {
               "fields": {
-                "authorId": {
-                  "column": "authorId"
+                "createdAt": {
+                  "column": "createdAt"
                 },
-                "content": {
-                  "column": "content"
+                "department": {
+                  "column": "department"
                 },
+                "firstName": {
+                  "column": "firstName"
+                },
+                "id": {
+                  "column": "id"
+                },
+                "jobPosition": {
+                  "column": "jobPosition"
+                },
+                "lastName": {
+                  "column": "lastName"
+                },
+                "managerId": {
+                  "column": "managerId"
+                },
+                "scheduleId": {
+                  "column": "scheduleId"
+                },
+                "status": {
+                  "column": "status"
+                },
+                "userId": {
+                  "column": "userId"
+                }
+              },
+              "namespaceId": "public",
+              "table": "employees"
+            }
+          },
+          "Payrun": {
+            "fields": {
+              "createdAt": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "kind": "scalar"
+                }
+              },
+              "id": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "name": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "periodEnd": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "kind": "scalar"
+                }
+              },
+              "periodStart": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "kind": "scalar"
+                }
+              },
+              "status": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                },
+                "valueSet": {
+                  "entityKind": "enum",
+                  "entityName": "PayrunStatus",
+                  "namespaceId": "public",
+                  "plane": "domain"
+                }
+              },
+              "structureId": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              }
+            },
+            "relations": {
+              "payslips": {
+                "cardinality": "1:N",
+                "on": {
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "payrunId"
+                  ]
+                },
+                "to": {
+                  "model": "Payslip",
+                  "namespace": "public"
+                }
+              },
+              "structure": {
+                "cardinality": "N:1",
+                "on": {
+                  "localFields": [
+                    "structureId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
+                },
+                "to": {
+                  "model": "SalaryStructure",
+                  "namespace": "public"
+                }
+              }
+            },
+            "storage": {
+              "fields": {
                 "createdAt": {
                   "column": "createdAt"
                 },
                 "id": {
                   "column": "id"
                 },
-                "title": {
-                  "column": "title"
+                "name": {
+                  "column": "name"
                 },
-                "updatedAt": {
-                  "column": "updatedAt"
+                "periodEnd": {
+                  "column": "periodEnd"
+                },
+                "periodStart": {
+                  "column": "periodStart"
+                },
+                "status": {
+                  "column": "status"
+                },
+                "structureId": {
+                  "column": "structureId"
                 }
               },
               "namespaceId": "public",
-              "table": "post"
+              "table": "payruns"
+            }
+          },
+          "Payslip": {
+            "fields": {
+              "contractId": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "createdAt": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "kind": "scalar"
+                }
+              },
+              "employeeId": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "id": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "netSalary": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/float8@1",
+                  "kind": "scalar"
+                }
+              },
+              "payrunId": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "warnings": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "workedDays": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/float8@1",
+                  "kind": "scalar"
+                }
+              }
+            },
+            "relations": {
+              "lines": {
+                "cardinality": "1:N",
+                "on": {
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "payslipId"
+                  ]
+                },
+                "to": {
+                  "model": "PayslipLine",
+                  "namespace": "public"
+                }
+              },
+              "payrun": {
+                "cardinality": "N:1",
+                "on": {
+                  "localFields": [
+                    "payrunId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
+                },
+                "to": {
+                  "model": "Payrun",
+                  "namespace": "public"
+                }
+              }
+            },
+            "storage": {
+              "fields": {
+                "contractId": {
+                  "column": "contractId"
+                },
+                "createdAt": {
+                  "column": "createdAt"
+                },
+                "employeeId": {
+                  "column": "employeeId"
+                },
+                "id": {
+                  "column": "id"
+                },
+                "netSalary": {
+                  "column": "netSalary"
+                },
+                "payrunId": {
+                  "column": "payrunId"
+                },
+                "warnings": {
+                  "column": "warnings"
+                },
+                "workedDays": {
+                  "column": "workedDays"
+                }
+              },
+              "namespaceId": "public",
+              "table": "payslips"
+            }
+          },
+          "PayslipLine": {
+            "fields": {
+              "amount": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/float8@1",
+                  "kind": "scalar"
+                }
+              },
+              "category": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                },
+                "valueSet": {
+                  "entityKind": "enum",
+                  "entityName": "SalaryCategory",
+                  "namespaceId": "public",
+                  "plane": "domain"
+                }
+              },
+              "id": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "payslipId": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "ruleId": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "sequence": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              }
+            },
+            "relations": {
+              "payslip": {
+                "cardinality": "N:1",
+                "on": {
+                  "localFields": [
+                    "payslipId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
+                },
+                "to": {
+                  "model": "Payslip",
+                  "namespace": "public"
+                }
+              },
+              "rule": {
+                "cardinality": "N:1",
+                "on": {
+                  "localFields": [
+                    "ruleId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
+                },
+                "to": {
+                  "model": "SalaryRule",
+                  "namespace": "public"
+                }
+              }
+            },
+            "storage": {
+              "fields": {
+                "amount": {
+                  "column": "amount"
+                },
+                "category": {
+                  "column": "category"
+                },
+                "id": {
+                  "column": "id"
+                },
+                "payslipId": {
+                  "column": "payslipId"
+                },
+                "ruleId": {
+                  "column": "ruleId"
+                },
+                "sequence": {
+                  "column": "sequence"
+                }
+              },
+              "namespaceId": "public",
+              "table": "payslip_lines"
+            }
+          },
+          "SalaryRule": {
+            "fields": {
+              "category": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                },
+                "valueSet": {
+                  "entityKind": "enum",
+                  "entityName": "SalaryCategory",
+                  "namespaceId": "public",
+                  "plane": "domain"
+                }
+              },
+              "code": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "computationMethod": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                },
+                "valueSet": {
+                  "entityKind": "enum",
+                  "entityName": "ComputationMethod",
+                  "namespaceId": "public",
+                  "plane": "domain"
+                }
+              },
+              "fixedAmount": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/float8@1",
+                  "kind": "scalar"
+                }
+              },
+              "formula": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "id": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "name": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "percentage": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/float8@1",
+                  "kind": "scalar"
+                }
+              }
+            },
+            "relations": {
+              "payslipLines": {
+                "cardinality": "1:N",
+                "on": {
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "ruleId"
+                  ]
+                },
+                "to": {
+                  "model": "PayslipLine",
+                  "namespace": "public"
+                }
+              },
+              "structures": {
+                "cardinality": "1:N",
+                "on": {
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "ruleId"
+                  ]
+                },
+                "to": {
+                  "model": "SalaryStructureRule",
+                  "namespace": "public"
+                }
+              }
+            },
+            "storage": {
+              "fields": {
+                "category": {
+                  "column": "category"
+                },
+                "code": {
+                  "column": "code"
+                },
+                "computationMethod": {
+                  "column": "computationMethod"
+                },
+                "fixedAmount": {
+                  "column": "fixedAmount"
+                },
+                "formula": {
+                  "column": "formula"
+                },
+                "id": {
+                  "column": "id"
+                },
+                "name": {
+                  "column": "name"
+                },
+                "percentage": {
+                  "column": "percentage"
+                }
+              },
+              "namespaceId": "public",
+              "table": "salary_rules"
+            }
+          },
+          "SalaryStructure": {
+            "fields": {
+              "active": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/bool@1",
+                  "kind": "scalar"
+                }
+              },
+              "id": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "name": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              }
+            },
+            "relations": {
+              "contracts": {
+                "cardinality": "1:N",
+                "on": {
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "structureId"
+                  ]
+                },
+                "to": {
+                  "model": "Contract",
+                  "namespace": "public"
+                }
+              },
+              "payruns": {
+                "cardinality": "1:N",
+                "on": {
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "structureId"
+                  ]
+                },
+                "to": {
+                  "model": "Payrun",
+                  "namespace": "public"
+                }
+              },
+              "rules": {
+                "cardinality": "1:N",
+                "on": {
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "structureId"
+                  ]
+                },
+                "to": {
+                  "model": "SalaryStructureRule",
+                  "namespace": "public"
+                }
+              }
+            },
+            "storage": {
+              "fields": {
+                "active": {
+                  "column": "active"
+                },
+                "id": {
+                  "column": "id"
+                },
+                "name": {
+                  "column": "name"
+                }
+              },
+              "namespaceId": "public",
+              "table": "salary_structures"
+            }
+          },
+          "SalaryStructureRule": {
+            "fields": {
+              "id": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "ruleId": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "sequence": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "structureId": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              }
+            },
+            "relations": {
+              "rule": {
+                "cardinality": "N:1",
+                "on": {
+                  "localFields": [
+                    "ruleId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
+                },
+                "to": {
+                  "model": "SalaryRule",
+                  "namespace": "public"
+                }
+              },
+              "structure": {
+                "cardinality": "N:1",
+                "on": {
+                  "localFields": [
+                    "structureId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
+                },
+                "to": {
+                  "model": "SalaryStructure",
+                  "namespace": "public"
+                }
+              }
+            },
+            "storage": {
+              "fields": {
+                "id": {
+                  "column": "id"
+                },
+                "ruleId": {
+                  "column": "ruleId"
+                },
+                "sequence": {
+                  "column": "sequence"
+                },
+                "structureId": {
+                  "column": "structureId"
+                }
+              },
+              "namespaceId": "public",
+              "table": "salary_structure_rules"
+            }
+          },
+          "ScheduleLine": {
+            "fields": {
+              "breakMins": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "day": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "endTime": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "id": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "scheduleId": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "startTime": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              }
+            },
+            "relations": {
+              "schedule": {
+                "cardinality": "N:1",
+                "on": {
+                  "localFields": [
+                    "scheduleId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
+                },
+                "to": {
+                  "model": "WorkingSchedule",
+                  "namespace": "public"
+                }
+              }
+            },
+            "storage": {
+              "fields": {
+                "breakMins": {
+                  "column": "breakMins"
+                },
+                "day": {
+                  "column": "day"
+                },
+                "endTime": {
+                  "column": "endTime"
+                },
+                "id": {
+                  "column": "id"
+                },
+                "scheduleId": {
+                  "column": "scheduleId"
+                },
+                "startTime": {
+                  "column": "startTime"
+                }
+              },
+              "namespaceId": "public",
+              "table": "schedule_lines"
+            }
+          },
+          "TimeOffRequest": {
+            "fields": {
+              "createdAt": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "kind": "scalar"
+                }
+              },
+              "decidedAt": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "kind": "scalar"
+                }
+              },
+              "decidedBy": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "duration": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/float8@1",
+                  "kind": "scalar"
+                }
+              },
+              "employeeId": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "endDate": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "kind": "scalar"
+                }
+              },
+              "id": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "startDate": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "kind": "scalar"
+                }
+              },
+              "status": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                },
+                "valueSet": {
+                  "entityKind": "enum",
+                  "entityName": "TimeOffRequestStatus",
+                  "namespaceId": "public",
+                  "plane": "domain"
+                }
+              },
+              "timeOffTypeId": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              }
+            },
+            "relations": {
+              "employee": {
+                "cardinality": "N:1",
+                "on": {
+                  "localFields": [
+                    "employeeId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
+                },
+                "to": {
+                  "model": "Employee",
+                  "namespace": "public"
+                }
+              },
+              "timeOffType": {
+                "cardinality": "N:1",
+                "on": {
+                  "localFields": [
+                    "timeOffTypeId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
+                },
+                "to": {
+                  "model": "TimeOffType",
+                  "namespace": "public"
+                }
+              }
+            },
+            "storage": {
+              "fields": {
+                "createdAt": {
+                  "column": "createdAt"
+                },
+                "decidedAt": {
+                  "column": "decidedAt"
+                },
+                "decidedBy": {
+                  "column": "decidedBy"
+                },
+                "duration": {
+                  "column": "duration"
+                },
+                "employeeId": {
+                  "column": "employeeId"
+                },
+                "endDate": {
+                  "column": "endDate"
+                },
+                "id": {
+                  "column": "id"
+                },
+                "startDate": {
+                  "column": "startDate"
+                },
+                "status": {
+                  "column": "status"
+                },
+                "timeOffTypeId": {
+                  "column": "timeOffTypeId"
+                }
+              },
+              "namespaceId": "public",
+              "table": "time_off_requests"
+            }
+          },
+          "TimeOffType": {
+            "fields": {
+              "id": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "name": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "payrollIntegration": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/bool@1",
+                  "kind": "scalar"
+                }
+              },
+              "requiresAllocation": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/bool@1",
+                  "kind": "scalar"
+                }
+              },
+              "requiresApproval": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/bool@1",
+                  "kind": "scalar"
+                }
+              },
+              "unit": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                },
+                "valueSet": {
+                  "entityKind": "enum",
+                  "entityName": "TimeOffUnit",
+                  "namespaceId": "public",
+                  "plane": "domain"
+                }
+              }
+            },
+            "relations": {
+              "allocations": {
+                "cardinality": "1:N",
+                "on": {
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "timeOffTypeId"
+                  ]
+                },
+                "to": {
+                  "model": "Allocation",
+                  "namespace": "public"
+                }
+              },
+              "requests": {
+                "cardinality": "1:N",
+                "on": {
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "timeOffTypeId"
+                  ]
+                },
+                "to": {
+                  "model": "TimeOffRequest",
+                  "namespace": "public"
+                }
+              }
+            },
+            "storage": {
+              "fields": {
+                "id": {
+                  "column": "id"
+                },
+                "name": {
+                  "column": "name"
+                },
+                "payrollIntegration": {
+                  "column": "payrollIntegration"
+                },
+                "requiresAllocation": {
+                  "column": "requiresAllocation"
+                },
+                "requiresApproval": {
+                  "column": "requiresApproval"
+                },
+                "unit": {
+                  "column": "unit"
+                }
+              },
+              "namespaceId": "public",
+              "table": "time_off_types"
             }
           },
           "User": {
@@ -123,45 +1878,44 @@
               "id": {
                 "nullable": false,
                 "type": {
-                  "codecId": "pg/int4@1",
-                  "kind": "scalar"
-                }
-              },
-              "name": {
-                "nullable": true,
-                "type": {
                   "codecId": "pg/text@1",
                   "kind": "scalar"
                 }
               },
-              "updatedAt": {
+              "passwordHash": {
                 "nullable": false,
                 "type": {
-                  "codecId": "pg/timestamptz-string@1",
+                  "codecId": "pg/text@1",
                   "kind": "scalar"
                 }
               },
-              "username": {
-                "nullable": true,
+              "role": {
+                "nullable": false,
                 "type": {
                   "codecId": "pg/text@1",
                   "kind": "scalar"
+                },
+                "valueSet": {
+                  "entityKind": "enum",
+                  "entityName": "Role",
+                  "namespaceId": "public",
+                  "plane": "domain"
                 }
               }
             },
             "relations": {
-              "posts": {
-                "cardinality": "1:N",
+              "employee": {
+                "cardinality": "1:1",
                 "on": {
                   "localFields": [
                     "id"
                   ],
                   "targetFields": [
-                    "authorId"
+                    "userId"
                   ]
                 },
                 "to": {
-                  "model": "Post",
+                  "model": "Employee",
                   "namespace": "public"
                 }
               }
@@ -177,18 +1931,87 @@
                 "id": {
                   "column": "id"
                 },
-                "name": {
-                  "column": "name"
+                "passwordHash": {
+                  "column": "passwordHash"
                 },
-                "updatedAt": {
-                  "column": "updatedAt"
-                },
-                "username": {
-                  "column": "username"
+                "role": {
+                  "column": "role"
                 }
               },
               "namespaceId": "public",
-              "table": "user"
+              "table": "users"
+            }
+          },
+          "WorkingSchedule": {
+            "fields": {
+              "id": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "name": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "weeklyHours": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/float8@1",
+                  "kind": "scalar"
+                }
+              }
+            },
+            "relations": {
+              "employees": {
+                "cardinality": "1:N",
+                "on": {
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "scheduleId"
+                  ]
+                },
+                "to": {
+                  "model": "Employee",
+                  "namespace": "public"
+                }
+              },
+              "lines": {
+                "cardinality": "1:N",
+                "on": {
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "scheduleId"
+                  ]
+                },
+                "to": {
+                  "model": "ScheduleLine",
+                  "namespace": "public"
+                }
+              }
+            },
+            "storage": {
+              "fields": {
+                "id": {
+                  "column": "id"
+                },
+                "name": {
+                  "column": "name"
+                },
+                "weeklyHours": {
+                  "column": "weeklyHours"
+                }
+              },
+              "namespaceId": "public",
+              "table": "working_schedules"
             }
           }
         }
@@ -200,17 +2023,12 @@
       "public": {
         "entries": {
           "table": {
-            "post": {
+            "allocations": {
               "columns": {
-                "authorId": {
-                  "codecId": "pg/int4@1",
-                  "nativeType": "int4",
+                "allocated": {
+                  "codecId": "pg/float8@1",
+                  "nativeType": "float8",
                   "nullable": false
-                },
-                "content": {
-                  "codecId": "pg/text@1",
-                  "nativeType": "text",
-                  "nullable": true
                 },
                 "createdAt": {
                   "codecId": "pg/timestamptz-string@1",
@@ -221,51 +2039,90 @@
                   "nativeType": "timestamptz",
                   "nullable": false
                 },
-                "id": {
-                  "codecId": "pg/int4@1",
-                  "default": {
-                    "expression": "autoincrement()",
-                    "kind": "function"
-                  },
-                  "nativeType": "int4",
-                  "nullable": false
-                },
-                "title": {
+                "employeeId": {
                   "codecId": "pg/text@1",
                   "nativeType": "text",
                   "nullable": false
                 },
-                "updatedAt": {
+                "id": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "taken": {
+                  "codecId": "pg/float8@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": 0
+                  },
+                  "nativeType": "float8",
+                  "nullable": false
+                },
+                "timeOffTypeId": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "validFrom": {
                   "codecId": "pg/timestamptz-string@1",
                   "nativeType": "timestamptz",
                   "nullable": false
+                },
+                "validTo": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "nativeType": "timestamptz",
+                  "nullable": true
                 }
               },
               "foreignKeys": [
                 {
                   "source": {
                     "columns": [
-                      "authorId"
+                      "employeeId"
                     ],
                     "namespaceId": "public",
-                    "tableName": "post"
+                    "tableName": "allocations"
                   },
                   "target": {
                     "columns": [
                       "id"
                     ],
                     "namespaceId": "public",
-                    "tableName": "user"
+                    "tableName": "employees"
+                  }
+                },
+                {
+                  "source": {
+                    "columns": [
+                      "timeOffTypeId"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "allocations"
+                  },
+                  "target": {
+                    "columns": [
+                      "id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "time_off_types"
                   }
                 }
               ],
               "indexes": [
                 {
                   "columns": [
-                    "authorId"
+                    "employeeId"
                   ],
-                  "name": "post_authorId_idx_e47547ed",
-                  "prefix": "post_authorId_idx",
+                  "name": "allocations_employeeId_idx_087dd4a6",
+                  "prefix": "allocations_employeeId_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "timeOffTypeId"
+                  ],
+                  "name": "allocations_timeOffTypeId_idx_3512d8f4",
+                  "prefix": "allocations_timeOffTypeId_idx",
                   "unique": false
                 }
               ],
@@ -276,7 +2133,1157 @@
               },
               "uniques": []
             },
-            "user": {
+            "attendances": {
+              "checks": [
+                {
+                  "expression": "\"status\" IN ('PRESENT', 'LATE', 'ABSENT', 'OVERTIME', 'MANUAL_CORRECTION')",
+                  "name": "attendances_status_check_74a29b6f",
+                  "prefix": "attendances_status_check"
+                }
+              ],
+              "columns": {
+                "checkIn": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "nativeType": "timestamptz",
+                  "nullable": false
+                },
+                "checkOut": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "nativeType": "timestamptz",
+                  "nullable": true
+                },
+                "correctedAt": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "nativeType": "timestamptz",
+                  "nullable": true
+                },
+                "correctedBy": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
+                "employeeId": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "id": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "status": {
+                  "codecId": "pg/text@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": "PRESENT"
+                  },
+                  "nativeType": "text",
+                  "nullable": false,
+                  "valueSet": {
+                    "entityKind": "valueSet",
+                    "entityName": "AttendanceStatus",
+                    "namespaceId": "public",
+                    "plane": "storage"
+                  }
+                },
+                "workedHours": {
+                  "codecId": "pg/float8@1",
+                  "nativeType": "float8",
+                  "nullable": true
+                }
+              },
+              "foreignKeys": [
+                {
+                  "source": {
+                    "columns": [
+                      "employeeId"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "attendances"
+                  },
+                  "target": {
+                    "columns": [
+                      "id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "employees"
+                  }
+                }
+              ],
+              "indexes": [
+                {
+                  "columns": [
+                    "employeeId"
+                  ],
+                  "name": "attendances_employeeId_idx_087dd4a6",
+                  "prefix": "attendances_employeeId_idx",
+                  "unique": false
+                }
+              ],
+              "primaryKey": {
+                "columns": [
+                  "id"
+                ]
+              },
+              "uniques": []
+            },
+            "contracts": {
+              "checks": [
+                {
+                  "expression": "\"status\" IN ('DRAFT', 'ACTIVE', 'EXPIRED')",
+                  "name": "contracts_status_check_109c26c6",
+                  "prefix": "contracts_status_check"
+                }
+              ],
+              "columns": {
+                "createdAt": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "default": {
+                    "expression": "now()",
+                    "kind": "function"
+                  },
+                  "nativeType": "timestamptz",
+                  "nullable": false
+                },
+                "department": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
+                "employeeId": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "endDate": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "nativeType": "timestamptz",
+                  "nullable": true
+                },
+                "id": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "jobPosition": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
+                "startDate": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "nativeType": "timestamptz",
+                  "nullable": false
+                },
+                "status": {
+                  "codecId": "pg/text@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": "DRAFT"
+                  },
+                  "nativeType": "text",
+                  "nullable": false,
+                  "valueSet": {
+                    "entityKind": "valueSet",
+                    "entityName": "ContractStatus",
+                    "namespaceId": "public",
+                    "plane": "storage"
+                  }
+                },
+                "structureId": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
+                "wage": {
+                  "codecId": "pg/float8@1",
+                  "nativeType": "float8",
+                  "nullable": false
+                }
+              },
+              "foreignKeys": [
+                {
+                  "source": {
+                    "columns": [
+                      "employeeId"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "contracts"
+                  },
+                  "target": {
+                    "columns": [
+                      "id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "employees"
+                  }
+                },
+                {
+                  "source": {
+                    "columns": [
+                      "structureId"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "contracts"
+                  },
+                  "target": {
+                    "columns": [
+                      "id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "salary_structures"
+                  }
+                }
+              ],
+              "indexes": [
+                {
+                  "columns": [
+                    "employeeId"
+                  ],
+                  "name": "contracts_employeeId_idx_087dd4a6",
+                  "prefix": "contracts_employeeId_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "structureId"
+                  ],
+                  "name": "contracts_structureId_idx_e6bb5662",
+                  "prefix": "contracts_structureId_idx",
+                  "unique": false
+                }
+              ],
+              "primaryKey": {
+                "columns": [
+                  "id"
+                ]
+              },
+              "uniques": []
+            },
+            "employees": {
+              "checks": [
+                {
+                  "expression": "\"status\" IN ('ACTIVE', 'INACTIVE')",
+                  "name": "employees_status_check_ee520df2",
+                  "prefix": "employees_status_check"
+                }
+              ],
+              "columns": {
+                "createdAt": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "default": {
+                    "expression": "now()",
+                    "kind": "function"
+                  },
+                  "nativeType": "timestamptz",
+                  "nullable": false
+                },
+                "department": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
+                "firstName": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "id": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "jobPosition": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
+                "lastName": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "managerId": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
+                "scheduleId": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
+                "status": {
+                  "codecId": "pg/text@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": "ACTIVE"
+                  },
+                  "nativeType": "text",
+                  "nullable": false,
+                  "valueSet": {
+                    "entityKind": "valueSet",
+                    "entityName": "EmployeeStatus",
+                    "namespaceId": "public",
+                    "plane": "storage"
+                  }
+                },
+                "userId": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                }
+              },
+              "foreignKeys": [
+                {
+                  "source": {
+                    "columns": [
+                      "userId"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "employees"
+                  },
+                  "target": {
+                    "columns": [
+                      "id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "users"
+                  }
+                },
+                {
+                  "source": {
+                    "columns": [
+                      "managerId"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "employees"
+                  },
+                  "target": {
+                    "columns": [
+                      "id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "employees"
+                  }
+                },
+                {
+                  "source": {
+                    "columns": [
+                      "scheduleId"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "employees"
+                  },
+                  "target": {
+                    "columns": [
+                      "id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "working_schedules"
+                  }
+                }
+              ],
+              "indexes": [
+                {
+                  "columns": [
+                    "managerId"
+                  ],
+                  "name": "employees_managerId_idx_f8369ba6",
+                  "prefix": "employees_managerId_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "scheduleId"
+                  ],
+                  "name": "employees_scheduleId_idx_5a3bfbcb",
+                  "prefix": "employees_scheduleId_idx",
+                  "unique": false
+                }
+              ],
+              "primaryKey": {
+                "columns": [
+                  "id"
+                ]
+              },
+              "uniques": [
+                {
+                  "columns": [
+                    "userId"
+                  ]
+                }
+              ]
+            },
+            "payruns": {
+              "checks": [
+                {
+                  "expression": "\"status\" IN ('DRAFT', 'COMPUTED', 'VALIDATED', 'PAID')",
+                  "name": "payruns_status_check_8dad9e44",
+                  "prefix": "payruns_status_check"
+                }
+              ],
+              "columns": {
+                "createdAt": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "default": {
+                    "expression": "now()",
+                    "kind": "function"
+                  },
+                  "nativeType": "timestamptz",
+                  "nullable": false
+                },
+                "id": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "name": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "periodEnd": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "nativeType": "timestamptz",
+                  "nullable": false
+                },
+                "periodStart": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "nativeType": "timestamptz",
+                  "nullable": false
+                },
+                "status": {
+                  "codecId": "pg/text@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": "DRAFT"
+                  },
+                  "nativeType": "text",
+                  "nullable": false,
+                  "valueSet": {
+                    "entityKind": "valueSet",
+                    "entityName": "PayrunStatus",
+                    "namespaceId": "public",
+                    "plane": "storage"
+                  }
+                },
+                "structureId": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                }
+              },
+              "foreignKeys": [
+                {
+                  "source": {
+                    "columns": [
+                      "structureId"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "payruns"
+                  },
+                  "target": {
+                    "columns": [
+                      "id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "salary_structures"
+                  }
+                }
+              ],
+              "indexes": [
+                {
+                  "columns": [
+                    "structureId"
+                  ],
+                  "name": "payruns_structureId_idx_e6bb5662",
+                  "prefix": "payruns_structureId_idx",
+                  "unique": false
+                }
+              ],
+              "primaryKey": {
+                "columns": [
+                  "id"
+                ]
+              },
+              "uniques": []
+            },
+            "payslip_lines": {
+              "checks": [
+                {
+                  "expression": "\"category\" IN ('BASIC', 'ALLOWANCE', 'GROSS', 'DEDUCTION', 'NET')",
+                  "name": "payslip_lines_category_check_3d248fbd",
+                  "prefix": "payslip_lines_category_check"
+                }
+              ],
+              "columns": {
+                "amount": {
+                  "codecId": "pg/float8@1",
+                  "nativeType": "float8",
+                  "nullable": false
+                },
+                "category": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false,
+                  "valueSet": {
+                    "entityKind": "valueSet",
+                    "entityName": "SalaryCategory",
+                    "namespaceId": "public",
+                    "plane": "storage"
+                  }
+                },
+                "id": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "payslipId": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "ruleId": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "sequence": {
+                  "codecId": "pg/int4@1",
+                  "nativeType": "int4",
+                  "nullable": false
+                }
+              },
+              "foreignKeys": [
+                {
+                  "source": {
+                    "columns": [
+                      "payslipId"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "payslip_lines"
+                  },
+                  "target": {
+                    "columns": [
+                      "id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "payslips"
+                  }
+                },
+                {
+                  "source": {
+                    "columns": [
+                      "ruleId"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "payslip_lines"
+                  },
+                  "target": {
+                    "columns": [
+                      "id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "salary_rules"
+                  }
+                }
+              ],
+              "indexes": [
+                {
+                  "columns": [
+                    "payslipId"
+                  ],
+                  "name": "payslip_lines_payslipId_idx_a0500224",
+                  "prefix": "payslip_lines_payslipId_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "ruleId"
+                  ],
+                  "name": "payslip_lines_ruleId_idx_05e770f7",
+                  "prefix": "payslip_lines_ruleId_idx",
+                  "unique": false
+                }
+              ],
+              "primaryKey": {
+                "columns": [
+                  "id"
+                ]
+              },
+              "uniques": []
+            },
+            "payslips": {
+              "columns": {
+                "contractId": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "createdAt": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "default": {
+                    "expression": "now()",
+                    "kind": "function"
+                  },
+                  "nativeType": "timestamptz",
+                  "nullable": false
+                },
+                "employeeId": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "id": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "netSalary": {
+                  "codecId": "pg/float8@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": 0
+                  },
+                  "nativeType": "float8",
+                  "nullable": false
+                },
+                "payrunId": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "warnings": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
+                "workedDays": {
+                  "codecId": "pg/float8@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": 0
+                  },
+                  "nativeType": "float8",
+                  "nullable": false
+                }
+              },
+              "foreignKeys": [
+                {
+                  "source": {
+                    "columns": [
+                      "payrunId"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "payslips"
+                  },
+                  "target": {
+                    "columns": [
+                      "id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "payruns"
+                  }
+                }
+              ],
+              "indexes": [
+                {
+                  "columns": [
+                    "payrunId"
+                  ],
+                  "name": "payslips_payrunId_idx_8618ecfd",
+                  "prefix": "payslips_payrunId_idx",
+                  "unique": false
+                }
+              ],
+              "primaryKey": {
+                "columns": [
+                  "id"
+                ]
+              },
+              "uniques": []
+            },
+            "salary_rules": {
+              "checks": [
+                {
+                  "expression": "\"category\" IN ('BASIC', 'ALLOWANCE', 'GROSS', 'DEDUCTION', 'NET')",
+                  "name": "salary_rules_category_check_3d248fbd",
+                  "prefix": "salary_rules_category_check"
+                },
+                {
+                  "expression": "\"computationMethod\" IN ('FIXED', 'PERCENTAGE', 'FORMULA')",
+                  "name": "salary_rules_computationMethod_check_62f8c0a2",
+                  "prefix": "salary_rules_computationMethod_check"
+                }
+              ],
+              "columns": {
+                "category": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false,
+                  "valueSet": {
+                    "entityKind": "valueSet",
+                    "entityName": "SalaryCategory",
+                    "namespaceId": "public",
+                    "plane": "storage"
+                  }
+                },
+                "code": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "computationMethod": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false,
+                  "valueSet": {
+                    "entityKind": "valueSet",
+                    "entityName": "ComputationMethod",
+                    "namespaceId": "public",
+                    "plane": "storage"
+                  }
+                },
+                "fixedAmount": {
+                  "codecId": "pg/float8@1",
+                  "nativeType": "float8",
+                  "nullable": true
+                },
+                "formula": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
+                "id": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "name": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "percentage": {
+                  "codecId": "pg/float8@1",
+                  "nativeType": "float8",
+                  "nullable": true
+                }
+              },
+              "foreignKeys": [],
+              "indexes": [],
+              "primaryKey": {
+                "columns": [
+                  "id"
+                ]
+              },
+              "uniques": [
+                {
+                  "columns": [
+                    "code"
+                  ]
+                }
+              ]
+            },
+            "salary_structure_rules": {
+              "columns": {
+                "id": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "ruleId": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "sequence": {
+                  "codecId": "pg/int4@1",
+                  "nativeType": "int4",
+                  "nullable": false
+                },
+                "structureId": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                }
+              },
+              "foreignKeys": [
+                {
+                  "source": {
+                    "columns": [
+                      "structureId"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "salary_structure_rules"
+                  },
+                  "target": {
+                    "columns": [
+                      "id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "salary_structures"
+                  }
+                },
+                {
+                  "source": {
+                    "columns": [
+                      "ruleId"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "salary_structure_rules"
+                  },
+                  "target": {
+                    "columns": [
+                      "id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "salary_rules"
+                  }
+                }
+              ],
+              "indexes": [
+                {
+                  "columns": [
+                    "ruleId"
+                  ],
+                  "name": "salary_structure_rules_ruleId_idx_05e770f7",
+                  "prefix": "salary_structure_rules_ruleId_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "structureId"
+                  ],
+                  "name": "salary_structure_rules_structureId_idx_e6bb5662",
+                  "prefix": "salary_structure_rules_structureId_idx",
+                  "unique": false
+                }
+              ],
+              "primaryKey": {
+                "columns": [
+                  "id"
+                ]
+              },
+              "uniques": []
+            },
+            "salary_structures": {
+              "columns": {
+                "active": {
+                  "codecId": "pg/bool@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": true
+                  },
+                  "nativeType": "bool",
+                  "nullable": false
+                },
+                "id": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "name": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                }
+              },
+              "foreignKeys": [],
+              "indexes": [],
+              "primaryKey": {
+                "columns": [
+                  "id"
+                ]
+              },
+              "uniques": []
+            },
+            "schedule_lines": {
+              "columns": {
+                "breakMins": {
+                  "codecId": "pg/int4@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": 0
+                  },
+                  "nativeType": "int4",
+                  "nullable": false
+                },
+                "day": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "endTime": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "id": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "scheduleId": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "startTime": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                }
+              },
+              "foreignKeys": [
+                {
+                  "source": {
+                    "columns": [
+                      "scheduleId"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "schedule_lines"
+                  },
+                  "target": {
+                    "columns": [
+                      "id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "working_schedules"
+                  }
+                }
+              ],
+              "indexes": [
+                {
+                  "columns": [
+                    "scheduleId"
+                  ],
+                  "name": "schedule_lines_scheduleId_idx_5a3bfbcb",
+                  "prefix": "schedule_lines_scheduleId_idx",
+                  "unique": false
+                }
+              ],
+              "primaryKey": {
+                "columns": [
+                  "id"
+                ]
+              },
+              "uniques": []
+            },
+            "time_off_requests": {
+              "checks": [
+                {
+                  "expression": "\"status\" IN ('PENDING', 'APPROVED', 'REFUSED')",
+                  "name": "time_off_requests_status_check_510c7a8c",
+                  "prefix": "time_off_requests_status_check"
+                }
+              ],
+              "columns": {
+                "createdAt": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "default": {
+                    "expression": "now()",
+                    "kind": "function"
+                  },
+                  "nativeType": "timestamptz",
+                  "nullable": false
+                },
+                "decidedAt": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "nativeType": "timestamptz",
+                  "nullable": true
+                },
+                "decidedBy": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
+                "duration": {
+                  "codecId": "pg/float8@1",
+                  "nativeType": "float8",
+                  "nullable": false
+                },
+                "employeeId": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "endDate": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "nativeType": "timestamptz",
+                  "nullable": false
+                },
+                "id": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "startDate": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "nativeType": "timestamptz",
+                  "nullable": false
+                },
+                "status": {
+                  "codecId": "pg/text@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": "PENDING"
+                  },
+                  "nativeType": "text",
+                  "nullable": false,
+                  "valueSet": {
+                    "entityKind": "valueSet",
+                    "entityName": "TimeOffRequestStatus",
+                    "namespaceId": "public",
+                    "plane": "storage"
+                  }
+                },
+                "timeOffTypeId": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                }
+              },
+              "foreignKeys": [
+                {
+                  "source": {
+                    "columns": [
+                      "employeeId"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "time_off_requests"
+                  },
+                  "target": {
+                    "columns": [
+                      "id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "employees"
+                  }
+                },
+                {
+                  "source": {
+                    "columns": [
+                      "timeOffTypeId"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "time_off_requests"
+                  },
+                  "target": {
+                    "columns": [
+                      "id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "time_off_types"
+                  }
+                }
+              ],
+              "indexes": [
+                {
+                  "columns": [
+                    "employeeId"
+                  ],
+                  "name": "time_off_requests_employeeId_idx_087dd4a6",
+                  "prefix": "time_off_requests_employeeId_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "timeOffTypeId"
+                  ],
+                  "name": "time_off_requests_timeOffTypeId_idx_3512d8f4",
+                  "prefix": "time_off_requests_timeOffTypeId_idx",
+                  "unique": false
+                }
+              ],
+              "primaryKey": {
+                "columns": [
+                  "id"
+                ]
+              },
+              "uniques": []
+            },
+            "time_off_types": {
+              "checks": [
+                {
+                  "expression": "\"unit\" IN ('DAYS', 'HOURS')",
+                  "name": "time_off_types_unit_check_1fe1674b",
+                  "prefix": "time_off_types_unit_check"
+                }
+              ],
+              "columns": {
+                "id": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "name": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "payrollIntegration": {
+                  "codecId": "pg/bool@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": false
+                  },
+                  "nativeType": "bool",
+                  "nullable": false
+                },
+                "requiresAllocation": {
+                  "codecId": "pg/bool@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": true
+                  },
+                  "nativeType": "bool",
+                  "nullable": false
+                },
+                "requiresApproval": {
+                  "codecId": "pg/bool@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": true
+                  },
+                  "nativeType": "bool",
+                  "nullable": false
+                },
+                "unit": {
+                  "codecId": "pg/text@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": "DAYS"
+                  },
+                  "nativeType": "text",
+                  "nullable": false,
+                  "valueSet": {
+                    "entityKind": "valueSet",
+                    "entityName": "TimeOffUnit",
+                    "namespaceId": "public",
+                    "plane": "storage"
+                  }
+                }
+              },
+              "foreignKeys": [],
+              "indexes": [],
+              "primaryKey": {
+                "columns": [
+                  "id"
+                ]
+              },
+              "uniques": []
+            },
+            "users": {
+              "checks": [
+                {
+                  "expression": "\"role\" IN ('EMPLOYEE', 'HR_MANAGER', 'HR_PAYROLL_USER', 'HR_PAYROLL_MANAGER', 'ADMIN')",
+                  "name": "users_role_check_442cfa5f",
+                  "prefix": "users_role_check"
+                }
+              ],
               "columns": {
                 "createdAt": {
                   "codecId": "pg/timestamptz-string@1",
@@ -293,28 +3300,29 @@
                   "nullable": false
                 },
                 "id": {
-                  "codecId": "pg/int4@1",
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "passwordHash": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "role": {
+                  "codecId": "pg/text@1",
                   "default": {
-                    "expression": "autoincrement()",
-                    "kind": "function"
+                    "kind": "literal",
+                    "value": "EMPLOYEE"
                   },
-                  "nativeType": "int4",
-                  "nullable": false
-                },
-                "name": {
-                  "codecId": "pg/text@1",
                   "nativeType": "text",
-                  "nullable": true
-                },
-                "updatedAt": {
-                  "codecId": "pg/timestamptz-string@1",
-                  "nativeType": "timestamptz",
-                  "nullable": false
-                },
-                "username": {
-                  "codecId": "pg/text@1",
-                  "nativeType": "text",
-                  "nullable": true
+                  "nullable": false,
+                  "valueSet": {
+                    "entityKind": "valueSet",
+                    "entityName": "Role",
+                    "namespaceId": "public",
+                    "plane": "storage"
+                  }
                 }
               },
               "foreignKeys": [],
@@ -331,6 +3339,116 @@
                   ]
                 }
               ]
+            },
+            "working_schedules": {
+              "columns": {
+                "id": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "name": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "weeklyHours": {
+                  "codecId": "pg/float8@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": 0
+                  },
+                  "nativeType": "float8",
+                  "nullable": false
+                }
+              },
+              "foreignKeys": [],
+              "indexes": [],
+              "primaryKey": {
+                "columns": [
+                  "id"
+                ]
+              },
+              "uniques": []
+            }
+          },
+          "valueSet": {
+            "AttendanceStatus": {
+              "kind": "valueSet",
+              "values": [
+                "PRESENT",
+                "LATE",
+                "ABSENT",
+                "OVERTIME",
+                "MANUAL_CORRECTION"
+              ]
+            },
+            "ComputationMethod": {
+              "kind": "valueSet",
+              "values": [
+                "FIXED",
+                "PERCENTAGE",
+                "FORMULA"
+              ]
+            },
+            "ContractStatus": {
+              "kind": "valueSet",
+              "values": [
+                "DRAFT",
+                "ACTIVE",
+                "EXPIRED"
+              ]
+            },
+            "EmployeeStatus": {
+              "kind": "valueSet",
+              "values": [
+                "ACTIVE",
+                "INACTIVE"
+              ]
+            },
+            "PayrunStatus": {
+              "kind": "valueSet",
+              "values": [
+                "DRAFT",
+                "COMPUTED",
+                "VALIDATED",
+                "PAID"
+              ]
+            },
+            "Role": {
+              "kind": "valueSet",
+              "values": [
+                "EMPLOYEE",
+                "HR_MANAGER",
+                "HR_PAYROLL_USER",
+                "HR_PAYROLL_MANAGER",
+                "ADMIN"
+              ]
+            },
+            "SalaryCategory": {
+              "kind": "valueSet",
+              "values": [
+                "BASIC",
+                "ALLOWANCE",
+                "GROSS",
+                "DEDUCTION",
+                "NET"
+              ]
+            },
+            "TimeOffRequestStatus": {
+              "kind": "valueSet",
+              "values": [
+                "PENDING",
+                "APPROVED",
+                "REFUSED"
+              ]
+            },
+            "TimeOffUnit": {
+              "kind": "valueSet",
+              "values": [
+                "DAYS",
+                "HOURS"
+              ]
             }
           }
         },
@@ -338,40 +3456,175 @@
         "kind": "postgres-schema"
       }
     },
-    "storageHash": "1e8412e162dbbe69f4bb3bf8d07f0280ae67eaab15c34dcf201e67468315428d"
+    "storageHash": "6cdc588cf539de8257f06f664b1724e43f7c421a0da205fe384cccb5ebf723aa"
   },
   "execution": {
-    "executionHash": "4abff323cc88151ef9c9a0ec90122cfee6d46814a118cdb66a9fdd94a4123463",
+    "executionHash": "f3f5ee4ff36140efa36a289d2d9d00d88b3e7c8a3dbf55056f7db804d424c1e7",
     "mutations": {
       "defaults": [
         {
           "onCreate": {
-            "id": "timestampNow",
-            "kind": "generator"
-          },
-          "onUpdate": {
-            "id": "timestampNow",
+            "id": "uuidv4",
             "kind": "generator"
           },
           "ref": {
-            "column": "updatedAt",
+            "column": "id",
             "namespace": "public",
-            "table": "post"
+            "table": "allocations"
           }
         },
         {
           "onCreate": {
-            "id": "timestampNow",
-            "kind": "generator"
-          },
-          "onUpdate": {
-            "id": "timestampNow",
+            "id": "uuidv4",
             "kind": "generator"
           },
           "ref": {
-            "column": "updatedAt",
+            "column": "id",
             "namespace": "public",
-            "table": "user"
+            "table": "attendances"
+          }
+        },
+        {
+          "onCreate": {
+            "id": "uuidv4",
+            "kind": "generator"
+          },
+          "ref": {
+            "column": "id",
+            "namespace": "public",
+            "table": "contracts"
+          }
+        },
+        {
+          "onCreate": {
+            "id": "uuidv4",
+            "kind": "generator"
+          },
+          "ref": {
+            "column": "id",
+            "namespace": "public",
+            "table": "employees"
+          }
+        },
+        {
+          "onCreate": {
+            "id": "uuidv4",
+            "kind": "generator"
+          },
+          "ref": {
+            "column": "id",
+            "namespace": "public",
+            "table": "payruns"
+          }
+        },
+        {
+          "onCreate": {
+            "id": "uuidv4",
+            "kind": "generator"
+          },
+          "ref": {
+            "column": "id",
+            "namespace": "public",
+            "table": "payslip_lines"
+          }
+        },
+        {
+          "onCreate": {
+            "id": "uuidv4",
+            "kind": "generator"
+          },
+          "ref": {
+            "column": "id",
+            "namespace": "public",
+            "table": "payslips"
+          }
+        },
+        {
+          "onCreate": {
+            "id": "uuidv4",
+            "kind": "generator"
+          },
+          "ref": {
+            "column": "id",
+            "namespace": "public",
+            "table": "salary_rules"
+          }
+        },
+        {
+          "onCreate": {
+            "id": "uuidv4",
+            "kind": "generator"
+          },
+          "ref": {
+            "column": "id",
+            "namespace": "public",
+            "table": "salary_structure_rules"
+          }
+        },
+        {
+          "onCreate": {
+            "id": "uuidv4",
+            "kind": "generator"
+          },
+          "ref": {
+            "column": "id",
+            "namespace": "public",
+            "table": "salary_structures"
+          }
+        },
+        {
+          "onCreate": {
+            "id": "uuidv4",
+            "kind": "generator"
+          },
+          "ref": {
+            "column": "id",
+            "namespace": "public",
+            "table": "schedule_lines"
+          }
+        },
+        {
+          "onCreate": {
+            "id": "uuidv4",
+            "kind": "generator"
+          },
+          "ref": {
+            "column": "id",
+            "namespace": "public",
+            "table": "time_off_requests"
+          }
+        },
+        {
+          "onCreate": {
+            "id": "uuidv4",
+            "kind": "generator"
+          },
+          "ref": {
+            "column": "id",
+            "namespace": "public",
+            "table": "time_off_types"
+          }
+        },
+        {
+          "onCreate": {
+            "id": "uuidv4",
+            "kind": "generator"
+          },
+          "ref": {
+            "column": "id",
+            "namespace": "public",
+            "table": "users"
+          }
+        },
+        {
+          "onCreate": {
+            "id": "uuidv4",
+            "kind": "generator"
+          },
+          "ref": {
+            "column": "id",
+            "namespace": "public",
+            "table": "working_schedules"
           }
         }
       ]

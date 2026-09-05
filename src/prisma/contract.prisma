@@ -1,21 +1,282 @@
 // use prisma-next
 
-model User {
-  id        Int      @id @default(autoincrement())
-  email     String   @unique
-  username  String?
-  name      String?
-  posts     Post[]
-  createdAt TimestamptzString @default(now())
-  updatedAt temporal.updatedAtString()
+// ============ SHARED ENUMS ============
+enum Role {
+  EMPLOYEE
+  HR_MANAGER
+  HR_PAYROLL_USER
+  HR_PAYROLL_MANAGER
+  ADMIN
 }
 
-model Post {
-  id        Int      @id @default(autoincrement())
-  title     String
-  content   String?
-  author    User     @relation(fields: [authorId], references: [id])
-  authorId  Int
-  createdAt TimestamptzString @default(now())
-  updatedAt temporal.updatedAtString()
+enum EmployeeStatus {
+  ACTIVE
+  INACTIVE
+}
+
+enum ContractStatus {
+  DRAFT
+  ACTIVE
+  EXPIRED
+}
+
+enum AttendanceStatus {
+  PRESENT
+  LATE
+  ABSENT
+  OVERTIME
+  MANUAL_CORRECTION
+}
+
+enum TimeOffUnit {
+  DAYS
+  HOURS
+}
+
+enum TimeOffRequestStatus {
+  PENDING
+  APPROVED
+  REFUSED
+}
+
+enum SalaryCategory {
+  BASIC
+  ALLOWANCE
+  GROSS
+  DEDUCTION
+  NET
+}
+
+enum ComputationMethod {
+  FIXED
+  PERCENTAGE
+  FORMULA
+}
+
+enum PayrunStatus {
+  DRAFT
+  COMPUTED
+  VALIDATED
+  PAID
+}
+
+// ============ AUTH — ANANYA ============
+model User {
+  id           String    @id @default(uuid())
+  email        String    @unique
+  passwordHash String
+  role         Role      @default(EMPLOYEE)
+  createdAt    TimestamptzString @default(now())
+  employee     Employee?
+
+  @@map("users")
+}
+
+// ============ EMPLOYEE LIFECYCLE — PERSON A (stub for FK purposes) ============
+model Employee {
+  id           String         @id @default(uuid())
+  userId       String?        @unique
+  user         User?          @relation(fields: [userId], references: [id])
+  firstName    String
+  lastName     String
+  department   String?
+  managerId    String?
+  manager      Employee?      @relation("EmployeeManager", fields: [managerId], references: [id])
+  reports      Employee[]     @relation("EmployeeManager")
+  jobPosition  String?
+  status       EmployeeStatus @default(ACTIVE)
+  scheduleId   String?
+  schedule     WorkingSchedule? @relation(fields: [scheduleId], references: [id])
+  createdAt    TimestamptzString @default(now())
+
+  contracts      Contract[]
+  attendances    Attendance[]
+  allocations    Allocation[]
+  timeOffRequests TimeOffRequest[]
+
+  @@map("employees")
+}
+
+model Contract {
+  id          String         @id @default(uuid())
+  employeeId  String
+  employee    Employee       @relation(fields: [employeeId], references: [id])
+  startDate   TimestamptzString
+  endDate     TimestamptzString?
+  wage        Float
+  department  String?
+  jobPosition String?
+  structureId String?
+  structure   SalaryStructure? @relation(fields: [structureId], references: [id])
+  status      ContractStatus @default(DRAFT)
+  createdAt   TimestamptzString @default(now())
+
+  @@map("contracts")
+}
+
+model WorkingSchedule {
+  id          String         @id @default(uuid())
+  name        String
+  weeklyHours Float          @default(0)
+  lines       ScheduleLine[]
+  employees   Employee[]
+
+  @@map("working_schedules")
+}
+
+model ScheduleLine {
+  id         String          @id @default(uuid())
+  scheduleId String
+  schedule   WorkingSchedule @relation(fields: [scheduleId], references: [id])
+  day        String
+  startTime  String
+  endTime    String
+  breakMins  Int             @default(0)
+
+  @@map("schedule_lines")
+}
+
+model Attendance {
+  id            String           @id @default(uuid())
+  employeeId    String
+  employee      Employee         @relation(fields: [employeeId], references: [id])
+  checkIn       TimestamptzString
+  checkOut      TimestamptzString?
+  workedHours   Float?
+  status        AttendanceStatus @default(PRESENT)
+  correctedBy   String?
+  correctedAt   TimestamptzString?
+
+  @@map("attendances")
+}
+
+// ============ TIME OFF — ANANYA (yours in full) ============
+model TimeOffType {
+  id                  String       @id @default(uuid())
+  name                String
+  unit                TimeOffUnit  @default(DAYS)
+  requiresAllocation  Boolean      @default(true)
+  requiresApproval    Boolean      @default(true)
+  payrollIntegration  Boolean      @default(false)
+
+  allocations  Allocation[]
+  requests     TimeOffRequest[]
+
+  @@map("time_off_types")
+}
+
+model Allocation {
+  id            String      @id @default(uuid())
+  employeeId    String
+  employee      Employee    @relation(fields: [employeeId], references: [id])
+  timeOffTypeId String
+  timeOffType   TimeOffType @relation(fields: [timeOffTypeId], references: [id])
+  allocated     Float
+  taken         Float       @default(0)
+  validFrom     TimestamptzString
+  validTo       TimestamptzString?
+  createdAt     TimestamptzString @default(now())
+
+  @@map("allocations")
+}
+
+model TimeOffRequest {
+  id            String                @id @default(uuid())
+  employeeId    String
+  employee      Employee              @relation(fields: [employeeId], references: [id])
+  timeOffTypeId String
+  timeOffType   TimeOffType           @relation(fields: [timeOffTypeId], references: [id])
+  startDate     TimestamptzString
+  endDate       TimestamptzString
+  duration      Float
+  status        TimeOffRequestStatus  @default(PENDING)
+  decidedBy     String?
+  decidedAt     TimestamptzString?
+  createdAt     TimestamptzString     @default(now())
+
+  @@map("time_off_requests")
+}
+
+// ============ SALARY & PAYROLL — PERSON 3 (stub for FK purposes) ============
+model SalaryStructure {
+  id       String   @id @default(uuid())
+  name     String
+  active   Boolean  @default(true)
+
+  contracts Contract[]
+  rules     SalaryStructureRule[]
+  payruns   Payrun[]
+
+  @@map("salary_structures")
+}
+
+model SalaryRule {
+  id                String            @id @default(uuid())
+  name              String
+  code              String            @unique
+  category          SalaryCategory
+    computationMethod ComputationMethod
+  fixedAmount       Float?
+  percentage        Float?
+  formula           String?
+
+  structures SalaryStructureRule[]
+  payslipLines PayslipLine[]
+
+  @@map("salary_rules")
+}
+
+model SalaryStructureRule {
+  id          String          @id @default(uuid())
+  structureId String
+  structure   SalaryStructure @relation(fields: [structureId], references: [id])
+  ruleId      String
+  rule        SalaryRule      @relation(fields: [ruleId], references: [id])
+  sequence    Int
+
+  @@map("salary_structure_rules")
+}
+
+model Payrun {
+  id          String        @id @default(uuid())
+  name        String
+  structureId String
+  structure   SalaryStructure @relation(fields: [structureId], references: [id])
+  periodStart TimestamptzString
+  periodEnd   TimestamptzString
+  status      PayrunStatus  @default(DRAFT)
+  createdAt   TimestamptzString @default(now())
+
+  payslips Payslip[]
+
+  @@map("payruns")
+}
+
+model Payslip {
+  id          String   @id @default(uuid())
+  payrunId    String
+  payrun      Payrun   @relation(fields: [payrunId], references: [id])
+  employeeId  String
+  contractId  String
+  netSalary   Float    @default(0)
+  workedDays  Float    @default(0)
+  warnings    String?
+  createdAt   TimestamptzString @default(now())
+
+  lines PayslipLine[]
+
+  @@map("payslips")
+}
+
+model PayslipLine {
+  id        String     @id @default(uuid())
+  payslipId String
+  payslip   Payslip    @relation(fields: [payslipId], references: [id])
+  ruleId    String
+  rule      SalaryRule @relation(fields: [ruleId], references: [id])
+  category  SalaryCategory
+  amount    Float
+  sequence  Int
+
+  @@map("payslip_lines")
 }
