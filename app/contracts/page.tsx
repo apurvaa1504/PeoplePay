@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { AppShell } from "@/components/layout/AppShell";
@@ -10,7 +10,7 @@ import { TableSkeleton } from "@/components/ui/Skeleton";
 import { ContractRecord } from "@/lib/types";
 import { Plus, FileText, Filter } from "lucide-react";
 
-export default function ContractsPage() {
+function ContractsContent() {
   const searchParams = useSearchParams();
   const employeeFilter = searchParams.get("employeeId") || "";
 
@@ -43,6 +43,66 @@ export default function ContractsPage() {
   }, [employeeFilter, statusFilter]);
 
   return (
+    <div className="space-y-4">
+      {/* Header Description & Filters */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-3 rounded-lg border border-[#E8E3EA] shadow-2xs">
+        <div className="flex items-center gap-2">
+          <Filter className="w-3.5 h-3.5 text-[#A49FA8]" />
+          <select
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+            className="rounded-md border border-[#E8E3EA] bg-[#FCFBFD] px-2.5 py-1.5 text-xs text-[#524E57] focus:outline-none focus:ring-2 focus:ring-[#9B7FA6]/30 cursor-pointer"
+          >
+            <option value="">All Contract Statuses</option>
+            <option value="ACTIVE">Active</option>
+            <option value="DRAFT">Draft</option>
+            <option value="EXPIRED">Expired</option>
+          </select>
+        </div>
+
+        {employeeFilter && (
+          <div className="flex items-center gap-2 text-xs">
+            <span className="text-[#77717B]">Filtering by Employee:</span>
+            <span className="font-semibold text-[#71547D] bg-[#F1EBF3] px-2 py-0.5 rounded">
+              ID: {employeeFilter.slice(0, 8)}
+            </span>
+            <Link
+              href="/contracts"
+              className="text-[#B56767] hover:underline text-[11px]"
+            >
+              Clear filter
+            </Link>
+          </div>
+        )}
+      </div>
+
+      {error && (
+        <div className="p-4 bg-[#FAECEC] border border-[#E9C3C3] rounded-lg text-xs text-[#9A4E4E]">
+          {error}
+        </div>
+      )}
+
+      {loading && <TableSkeleton rows={4} cols={8} />}
+
+      {!loading && !error && contracts.length === 0 && (
+        <EmptyState
+          icon={<FileText className="w-6 h-6" />}
+          title="No contracts found"
+          description="No contract agreements have been added yet. Create a contract to link wage, salary structure, and active terms to an employee."
+          actionLabel="New Contract"
+          actionHref="/contracts/new"
+        />
+      )}
+
+      {!loading && !error && contracts.length > 0 && (
+        <ContractTable contracts={contracts} />
+      )}
+    </div>
+  );
+}
+
+export default function ContractsPage() {
+  return (
     <AppShell
       breadcrumbs={[{ label: "People" }, { label: "Contracts" }]}
       title="Contracts"
@@ -56,61 +116,9 @@ export default function ContractsPage() {
         </Link>
       }
     >
-      <div className="space-y-4">
-        {/* Header Description & Filters */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-3 rounded-lg border border-[#E8E3EA] shadow-2xs">
-          <div className="flex items-center gap-2">
-            <Filter className="w-3.5 h-3.5 text-[#A49FA8]" />
-            <select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-              className="rounded-md border border-[#E8E3EA] bg-[#FCFBFD] px-2.5 py-1.5 text-xs text-[#524E57] focus:outline-none focus:ring-2 focus:ring-[#9B7FA6]/30 cursor-pointer"
-            >
-              <option value="">All Contract Statuses</option>
-              <option value="ACTIVE">Active</option>
-              <option value="DRAFT">Draft</option>
-              <option value="EXPIRED">Expired</option>
-            </select>
-          </div>
-
-          {employeeFilter && (
-            <div className="flex items-center gap-2 text-xs">
-              <span className="text-[#77717B]">Filtering by Employee:</span>
-              <span className="font-semibold text-[#71547D] bg-[#F1EBF3] px-2 py-0.5 rounded">
-                ID: {employeeFilter.slice(0, 8)}
-              </span>
-              <Link
-                href="/contracts"
-                className="text-[#B56767] hover:underline text-[11px]"
-              >
-                Clear filter
-              </Link>
-            </div>
-          )}
-        </div>
-
-        {error && (
-          <div className="p-4 bg-[#FAECEC] border border-[#E9C3C3] rounded-lg text-xs text-[#9A4E4E]">
-            {error}
-          </div>
-        )}
-
-        {loading && <TableSkeleton rows={4} cols={8} />}
-
-        {!loading && !error && contracts.length === 0 && (
-          <EmptyState
-            icon={<FileText className="w-6 h-6" />}
-            title="No contracts found"
-            description="No contract agreements have been added yet. Create a contract to link wage, salary structure, and active terms to an employee."
-            actionLabel="New Contract"
-            actionHref="/contracts/new"
-          />
-        )}
-
-        {!loading && !error && contracts.length > 0 && (
-          <ContractTable contracts={contracts} />
-        )}
-      </div>
+      <Suspense fallback={<TableSkeleton rows={4} cols={8} />}>
+        <ContractsContent />
+      </Suspense>
     </AppShell>
   );
 }

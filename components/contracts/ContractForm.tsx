@@ -19,7 +19,7 @@ export function ContractForm({
   const router = useRouter();
   const [formData, setFormData] = useState({
     employeeId: preselectedEmployeeId || employees[0]?.id || "",
-    startDate: new Date().toISOString().split("T")[0],
+    startDate: "",
     endDate: "",
     wage: "",
     department: "",
@@ -27,6 +27,14 @@ export function ContractForm({
     structureId: "struct-standard",
     status: "ACTIVE",
   });
+
+  React.useEffect(() => {
+    setFormData((prev) => ({
+      ...prev,
+      startDate: prev.startDate || new Date().toISOString().split("T")[0],
+      employeeId: prev.employeeId || preselectedEmployeeId || employees[0]?.id || "",
+    }));
+  }, [employees, preselectedEmployeeId]);
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);

@@ -1,34 +1,57 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/src/prisma/db";
 import { memoryStore } from "@/lib/memoryStore";
-import { verifyToken } from "@/lib/auth";
+import { requireAuth } from "@/lib/authGuard";
+
+export function computeWorkedHours(checkIn: string, checkOut?: string | null): number | null {
+  if (!checkIn || !checkOut) return null;
+  const start = new Date(checkIn).getTime();
+  const end = new Date(checkOut).getTime();
+  if (isNaN(start) || isNaN(end) || end <= start) return 0;
+  const hours = (end - start) / (1000 * 60 * 60);
+  return Math.round(hours * 100) / 100;
+}
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const employeeId = searchParams.get("employeeId");
   const status = searchParams.get("status");
 
-  try {
-    if (process.env.DATABASE_URL) {
+  if (process.env.DATABASE_URL) {
+    try {
       const records = await db.orm.public.Attendance.all();
-      let list = records.map((r: any) => ({
-        id: r.id,
-        employeeId: r.employeeId,
-        checkIn: r.checkIn,
-        checkOut: r.checkOut,
-        workedHours: r.workedHours,
-        status: r.status,
-        correctedBy: r.correctedBy,
-        correctedAt: r.correctedAt,
-      }));
-      if (employeeId) list = list.filter((a) => a.employeeId === employeeId);
-      if (status) list = list.filter((a) => a.status === status);
+      const allEmployees = await db.orm.public.Employee.all();
+
+      let list = records.map((r: any) => {
+        const emp = allEmployees.find((e: any) => e.id === r.employeeId);
+        return {
+          id: r.id,
+          employeeId: r.employeeId,
+          employee: emp
+            ? { id: emp.id, firstName: emp.firstName, lastName: emp.lastName, department: emp.department }
+            : null,
+          checkIn: r.checkIn,
+          checkOut: r.checkOut,
+          workedHours: r.workedHours,
+          status: r.status,
+          correctedBy: r.correctedBy,
+          correctedAt: r.correctedAt,
+        };
+      });
+
+      if (employeeId) list = list.filter((a: any) => a.employeeId === employeeId);
+      if (status) list = list.filter((a: any) => a.status === status);
+
       return NextResponse.json(list);
+    } catch (err: any) {
+      return NextResponse.json(
+        { error: "Database error fetching attendance: " + (err.message || "Unknown error") },
+        { status: 500 }
+      );
     }
-  } catch {
-    // Fall back
   }
 
+  // MemoryStore demo path only when DATABASE_URL is not set
   let list = [...memoryStore.attendances];
   if (employeeId) list = list.filter((a) => a.employeeId === employeeId);
   if (status) list = list.filter((a) => a.status === status);
@@ -46,16 +69,6 @@ export async function GET(req: NextRequest) {
   return NextResponse.json(enriched);
 }
 
-// Compute worked hours from checkIn and checkOut
-function computeWorkedHours(checkIn: string, checkOut?: string | null): number | null {
-  if (!checkIn || !checkOut) return null;
-  const start = new Date(checkIn).getTime();
-  const end = new Date(checkOut).getTime();
-  if (isNaN(start) || isNaN(end) || end <= start) return 0;
-  const hours = (end - start) / (1000 * 60 * 60);
-  return Math.round(hours * 100) / 100;
-}
-
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
@@ -68,10 +81,26 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    if (checkOut && new Date(checkOut).getTime() <= new Date(checkIn).getTime()) {
+      return NextResponse.json(
+        { error: "Check Out time must be strictly after Check In time." },
+        { status: 400 }
+      );
+    }
+
+    // Business Rule: workedHours calculated strictly on server
     const workedHours = computeWorkedHours(checkIn, checkOut);
 
-    try {
-      if (process.env.DATABASE_URL) {
+    if (process.env.DATABASE_URL) {
+      try {
+        const emp = await db.orm.public.Employee.where({ id: employeeId }).first();
+        if (!emp) {
+          return NextResponse.json(
+            { error: "Invalid employeeId: Employee does not exist." },
+            { status: 400 }
+          );
+        }
+
         const created = await db.orm.public.Attendance.create({
           employeeId,
           checkIn,
@@ -79,10 +108,20 @@ export async function POST(req: NextRequest) {
           workedHours,
           status,
         });
+
         return NextResponse.json(created, { status: 201 });
+      } catch (err: any) {
+        return NextResponse.json(
+          { error: "Failed to record attendance in database: " + (err.message || "Unknown error") },
+          { status: 500 }
+        );
       }
-    } catch {
-      // Fall back
+    }
+
+    // MemoryStore fallback only when DATABASE_URL is not set
+    const emp = memoryStore.employees.find((e) => e.id === employeeId);
+    if (!emp) {
+      return NextResponse.json({ error: "Invalid employeeId: Employee does not exist." }, { status: 400 });
     }
 
     const newAttendance = {
@@ -98,80 +137,92 @@ export async function POST(req: NextRequest) {
 
     memoryStore.attendances.unshift(newAttendance);
     return NextResponse.json(newAttendance, { status: 201 });
-  } catch {
-    return NextResponse.json({ error: "Failed to record attendance" }, { status: 500 });
+  } catch (err: any) {
+    return NextResponse.json({ error: "Invalid request payload: " + err.message }, { status: 400 });
   }
 }
 
-// Manual correction endpoint: restricted to authorized roles
+// Security: Strict manual attendance correction endpoint with requireAuth()
 export async function PATCH(req: NextRequest) {
   try {
+    // 1. Strict JWT Authentication & Authorization check
+    // Only HR_MANAGER, HR_PAYROLL_MANAGER, and ADMIN can manually correct attendance
+    const authResult = requireAuth(req, ["HR_MANAGER", "HR_PAYROLL_MANAGER", "ADMIN"]);
+    if (authResult.error) {
+      return authResult.error;
+    }
+
+    const authUser = authResult.user!;
     const body = await req.json();
-    const { id, checkIn, checkOut, workedHours, status = "MANUAL_CORRECTION" } = body;
+    const { id, checkIn, checkOut, status = "MANUAL_CORRECTION" } = body;
 
     if (!id) {
-      return NextResponse.json({ error: "Attendance ID is required" }, { status: 400 });
+      return NextResponse.json({ error: "Attendance record ID is required" }, { status: 400 });
     }
 
-    // Role check: Only authorized roles (HR_MANAGER, HR_PAYROLL_MANAGER, ADMIN)
-    const authHeader = req.headers.get("authorization");
-    let userRole = "HR_MANAGER"; // default to HR_MANAGER in internal/demo context if header not present
-    let correctedByName = "HR Manager (Apurva)";
-
-    if (authHeader && authHeader.startsWith("Bearer ")) {
-      const token = authHeader.slice(7);
-      const payload = verifyToken(token);
-      if (!payload) {
-        return NextResponse.json({ error: "Invalid token" }, { status: 401 });
-      }
-      userRole = payload.role;
-      correctedByName = `User (${payload.userId})`;
-    }
-
-    const authorizedRoles = ["HR_MANAGER", "HR_PAYROLL_MANAGER", "ADMIN"];
-    if (!authorizedRoles.includes(userRole)) {
+    if (checkIn && checkOut && new Date(checkOut).getTime() <= new Date(checkIn).getTime()) {
       return NextResponse.json(
-        { error: "Forbidden: Manual attendance correction is restricted to authorized HR/Admin roles." },
-        { status: 403 }
+        { error: "Check Out time must be strictly after Check In time." },
+        { status: 400 }
       );
     }
 
-    const calculatedHours =
-      workedHours !== undefined ? Number(workedHours) : computeWorkedHours(checkIn, checkOut);
+    const calculatedHours = computeWorkedHours(checkIn, checkOut);
+    const correctedBy = authUser.userId;
+    const correctedAt = new Date().toISOString();
 
-    try {
-      if (process.env.DATABASE_URL) {
+    if (process.env.DATABASE_URL) {
+      try {
+        const existing = await db.orm.public.Attendance.where({ id }).first();
+        if (!existing) {
+          return NextResponse.json({ error: "Attendance record not found" }, { status: 404 });
+        }
+
+        const effectiveCheckIn = checkIn || existing.checkIn;
+        const effectiveCheckOut = checkOut !== undefined ? checkOut : existing.checkOut;
+        const finalHours = computeWorkedHours(effectiveCheckIn, effectiveCheckOut);
+
         const updated = await db.orm.public.Attendance.where({ id }).update({
-          checkIn,
-          checkOut: checkOut || null,
-          workedHours: calculatedHours,
+          checkIn: effectiveCheckIn,
+          checkOut: effectiveCheckOut || null,
+          workedHours: finalHours,
           status,
-          correctedBy: correctedByName,
-          correctedAt: new Date().toISOString(),
+          correctedBy,
+          correctedAt,
         });
+
         return NextResponse.json(updated);
+      } catch (err: any) {
+        return NextResponse.json(
+          { error: "Database error updating attendance: " + (err.message || "Unknown error") },
+          { status: 500 }
+        );
       }
-    } catch {
-      // Fall back
     }
 
+    // MemoryStore fallback only when DATABASE_URL is not set
     const idx = memoryStore.attendances.findIndex((a) => a.id === id);
     if (idx === -1) {
       return NextResponse.json({ error: "Attendance record not found" }, { status: 404 });
     }
 
+    const existing = memoryStore.attendances[idx];
+    const effectiveCheckIn = checkIn || existing.checkIn;
+    const effectiveCheckOut = checkOut !== undefined ? checkOut : existing.checkOut;
+    const finalHours = computeWorkedHours(effectiveCheckIn, effectiveCheckOut);
+
     memoryStore.attendances[idx] = {
-      ...memoryStore.attendances[idx],
-      checkIn: checkIn ?? memoryStore.attendances[idx].checkIn,
-      checkOut: checkOut ?? memoryStore.attendances[idx].checkOut,
-      workedHours: calculatedHours,
-      status: "MANUAL_CORRECTION",
-      correctedBy: correctedByName,
-      correctedAt: new Date().toISOString(),
+      ...existing,
+      checkIn: effectiveCheckIn,
+      checkOut: effectiveCheckOut || null,
+      workedHours: finalHours,
+      status,
+      correctedBy,
+      correctedAt,
     };
 
     return NextResponse.json(memoryStore.attendances[idx]);
-  } catch {
-    return NextResponse.json({ error: "Failed to correct attendance" }, { status: 500 });
+  } catch (err: any) {
+    return NextResponse.json({ error: "Invalid request payload: " + err.message }, { status: 400 });
   }
 }
