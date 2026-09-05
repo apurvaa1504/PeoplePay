@@ -4,8 +4,9 @@ import { requireAuth } from '@/lib/authGuard';
 
 export async function PATCH(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
   const auth = requireAuth(req, ['HR_MANAGER', 'ADMIN']);
   if (auth.error) return auth.error;
 
@@ -20,7 +21,7 @@ export async function PATCH(
 
   try {
     const result = await db.transaction(async (tx) => {
-      const request = await tx.orm.public.TimeOffRequest.where({ id: params.id }).first();
+      const request = await tx.orm.public.TimeOffRequest.where({ id }).first();
       if (!request) {
         throw { status: 404, message: 'Time off request not found' };
       }
@@ -29,7 +30,7 @@ export async function PATCH(
       }
 
       if (decision === 'REFUSED') {
-        const updated = await tx.orm.public.TimeOffRequest.where({ id: params.id }).update({
+        const updated = await tx.orm.public.TimeOffRequest.where({ id }).update({
           status: 'REFUSED',
           decidedBy: auth.user.userId,
           decidedAt: new Date().toISOString(),
@@ -66,7 +67,7 @@ export async function PATCH(
         throw { status: 500, message: 'Failed to update allocation balance' };
       }
 
-      const updatedRequest = await tx.orm.public.TimeOffRequest.where({ id: params.id }).update({
+      const updatedRequest = await tx.orm.public.TimeOffRequest.where({ id }).update({
         status: 'APPROVED',
         decidedBy: auth.user.userId,
         decidedAt: new Date().toISOString(),

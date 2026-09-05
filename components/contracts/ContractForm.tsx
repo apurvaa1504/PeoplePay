@@ -24,7 +24,7 @@ export function ContractForm({
     wage: "",
     department: "",
     jobPosition: "",
-    structureId: "struct-standard",
+    structureId: "",
     status: "ACTIVE",
   });
 

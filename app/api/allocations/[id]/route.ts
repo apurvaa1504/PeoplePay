@@ -8,12 +8,13 @@ function withRemaining(allocation: any) {
 
 export async function GET(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
   const auth = requireAuth(req, ['EMPLOYEE', 'HR_MANAGER', 'HR_PAYROLL_USER', 'HR_PAYROLL_MANAGER', 'ADMIN']);
   if (auth.error) return auth.error;
 
-  const allocation = await db.orm.public.Allocation.where({ id: params.id }).first();
+  const allocation = await db.orm.public.Allocation.where({ id }).first();
   if (!allocation) {
     return NextResponse.json({ error: 'Allocation not found' }, { status: 404 });
   }
@@ -23,19 +24,20 @@ export async function GET(
 
 export async function PATCH(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
   const auth = requireAuth(req, ['HR_MANAGER', 'ADMIN']);
   if (auth.error) return auth.error;
 
-  const existing = await db.orm.public.Allocation.where({ id: params.id }).first();
+  const existing = await db.orm.public.Allocation.where({ id }).first();
   if (!existing) {
     return NextResponse.json({ error: 'Allocation not found' }, { status: 404 });
   }
 
   const body = await req.json();
 
-  const updated = await db.orm.public.Allocation.where({ id: params.id }).update({
+  const updated = await db.orm.public.Allocation.where({ id }).update({
     allocated: body.allocated ?? existing.allocated,
     validFrom: body.validFrom ?? existing.validFrom,
     validTo: body.validTo ?? existing.validTo,
@@ -46,16 +48,17 @@ export async function PATCH(
 
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
   const auth = requireAuth(req, ['HR_MANAGER', 'ADMIN']);
   if (auth.error) return auth.error;
 
-  const existing = await db.orm.public.Allocation.where({ id: params.id }).first();
+  const existing = await db.orm.public.Allocation.where({ id }).first();
   if (!existing) {
     return NextResponse.json({ error: 'Allocation not found' }, { status: 404 });
   }
 
-  await db.orm.public.Allocation.where({ id: params.id }).delete();
+  await db.orm.public.Allocation.where({ id }).delete();
   return NextResponse.json({ success: true });
 }

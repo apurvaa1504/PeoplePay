@@ -107,6 +107,39 @@ export function EmployeeForm({
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6 max-w-2xl bg-white p-6 rounded-lg border border-[#E8E3EA] shadow-2xs">
+      {/* Smart Action Buttons when editing an existing employee */}
+      {isEdit && initialData?.id && (
+        <div className="flex flex-wrap items-center gap-2 pb-4 border-b border-[#E8E3EA]">
+          <span className="text-[11px] font-semibold text-[#77717B] uppercase tracking-wider mr-1">
+            Linked Records:
+          </span>
+          <a
+            href={`/contracts?employeeId=${initialData.id}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-[#F1EBF3] hover:bg-[#E8DFEC] text-[#71547D] text-xs font-semibold transition-colors"
+          >
+            <span>Contracts</span>
+          </a>
+          <a
+            href={`/attendance?employeeId=${initialData.id}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-[#EDF4EE] hover:bg-[#E1EDE3] text-[#3D6B49] text-xs font-semibold transition-colors"
+          >
+            <span>Attendance</span>
+          </a>
+          <a
+            href={`/time-off?employeeId=${initialData.id}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-[#EDF2F7] hover:bg-[#E1E8F0] text-[#4F6785] text-xs font-semibold transition-colors"
+          >
+            <span>Time Off</span>
+          </a>
+        </div>
+      )}
+
       {error && (
         <div className="p-3 bg-[#FAECEC] border border-[#E9C3C3] rounded-md text-xs text-[#9A4E4E]">
           {error}

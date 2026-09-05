@@ -194,22 +194,25 @@ export default function EmployeeDetailPage() {
             </Link>
 
             {/* Smart Link: Time Off */}
-            <div className="bg-white p-4 rounded-lg border border-[#E8E3EA] shadow-2xs group">
+            <Link
+              href={`/time-off?employeeId=${employee.id}`}
+              className="bg-white p-4 rounded-lg border border-[#E8E3EA] hover:border-[#9B7FA6]/60 shadow-2xs hover:shadow-xs transition-all group"
+            >
               <div className="flex items-center justify-between mb-2">
                 <div className="w-8 h-8 rounded-md bg-[#EDF2F7] text-[#4F6785] flex items-center justify-center">
                   <Palmtree className="w-4 h-4" />
                 </div>
-                <span className="text-[10px] text-[#A49FA8] font-normal uppercase">
-                  Ananya
+                <span className="text-xs font-bold px-2 py-0.5 bg-[#F9F8FA] text-[#26232A] rounded-full border border-[#E8E3EA]">
+                  View
                 </span>
               </div>
-              <h4 className="text-sm font-semibold text-[#26232A]">
+              <h4 className="text-sm font-semibold text-[#26232A] group-hover:text-[#71547D] transition-colors">
                 Time Off
               </h4>
               <p className="text-[11px] text-[#77717B] mt-0.5">
                 Leave requests and holiday allocations.
               </p>
-            </div>
+            </Link>
           </div>
         </div>
 

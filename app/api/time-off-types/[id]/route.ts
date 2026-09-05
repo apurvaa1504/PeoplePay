@@ -4,12 +4,13 @@ import { requireAuth } from '@/lib/authGuard';
 
 export async function GET(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
   const auth = requireAuth(req, ['EMPLOYEE', 'HR_MANAGER', 'HR_PAYROLL_USER', 'HR_PAYROLL_MANAGER', 'ADMIN']);
   if (auth.error) return auth.error;
 
-  const type = await db.orm.public.TimeOffType.where({ id: params.id }).first();
+  const type = await db.orm.public.TimeOffType.where({ id }).first();
   if (!type) {
     return NextResponse.json({ error: 'Time off type not found' }, { status: 404 });
   }
@@ -19,22 +20,21 @@ export async function GET(
 
 export async function PATCH(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
   const auth = requireAuth(req, ['HR_MANAGER', 'ADMIN']);
   if (auth.error) return auth.error;
 
-  const existing = await db.orm.public.TimeOffType.where({ id: params.id }).first();
+  const existing = await db.orm.public.TimeOffType.where({ id }).first();
   if (!existing) {
     return NextResponse.json({ error: 'Time off type not found' }, { status: 404 });
   }
 
   const body = await req.json();
 
-  const updated = await db.orm.public.TimeOffType.where({ id: params.id }).update({
+  const updated = await db.orm.public.TimeOffType.where({ id }).update({
     name: body.name ?? existing.name,
-    unit: body.unit ?? existing.unit,
-    requiresAllocation: body.requiresAllocation ?? existing.requiresAllocation,
     requiresApproval: body.requiresApproval ?? existing.requiresApproval,
     payrollIntegration: body.payrollIntegration ?? existing.payrollIntegration,
   });
@@ -44,16 +44,17 @@ export async function PATCH(
 
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
   const auth = requireAuth(req, ['HR_MANAGER', 'ADMIN']);
   if (auth.error) return auth.error;
 
-  const existing = await db.orm.public.TimeOffType.where({ id: params.id }).first();
+  const existing = await db.orm.public.TimeOffType.where({ id }).first();
   if (!existing) {
     return NextResponse.json({ error: 'Time off type not found' }, { status: 404 });
   }
 
-  await db.orm.public.TimeOffType.where({ id: params.id }).delete();
+  await db.orm.public.TimeOffType.where({ id }).delete();
   return NextResponse.json({ success: true });
 }
