@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { api, ApiError } from "@/lib/apiClient";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
@@ -48,6 +48,7 @@ export default function AllocationsPage() {
   const [modalOpen, setModalOpen] = useState(false);
   const [form, setForm] = useState(emptyForm);
   const [saving, setSaving] = useState(false);
+  const [search, setSearch] = useState("");
 
   async function loadAll() {
     setLoading(true);
@@ -82,6 +83,12 @@ export default function AllocationsPage() {
     return type ? type.name : id;
   }
 
+  const visibleAllocations = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    if (!q) return allocations;
+    return allocations.filter((a) => employeeName(a.employeeId).toLowerCase().includes(q));
+  }, [allocations, employees, search]);
+
   function openCreate() {
     setForm(emptyForm);
     setModalOpen(true);
@@ -109,7 +116,7 @@ export default function AllocationsPage() {
   }
 
   async function handleDelete(id: string) {
-    if (!confirm("Delete this allocation?")) return;
+    if (!confirm("Delete this allocation? This cannot be undone and won't affect past approved requests.")) return;
     try {
       await api.delete(`/api/allocations/${id}`);
       await loadAll();
@@ -129,10 +136,18 @@ export default function AllocationsPage() {
       </div>
 
       {error && (
-        <div className="mb-4 rounded-md bg-[#FAECEC] border border-[#E9C3C3] px-3 py-2 text-xs text-[#9A4E4E] font-medium">
+        <div className="fixed top-4 left-1/2 -translate-x-1/2 z-[100] rounded-md bg-[#FAECEC] border border-[#E9C3C3] px-4 py-2.5 text-xs text-[#9A4E4E] font-medium shadow-lg max-w-lg">
           {error}
         </div>
       )}
+
+      <div className="mb-4">
+        <Input
+          placeholder="Search by employee name..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+        />
+      </div>
 
       <div className="bg-white rounded-lg border border-[#E8E3EA] overflow-hidden">
         <table className="w-full text-sm">
@@ -151,10 +166,10 @@ export default function AllocationsPage() {
             {loading && (
               <tr><td colSpan={7} className="px-4 py-6 text-center text-[#77717B] text-sm">Loading...</td></tr>
             )}
-            {!loading && allocations.length === 0 && (
-              <tr><td colSpan={7} className="px-4 py-6 text-center text-[#77717B] text-sm">No allocations yet</td></tr>
+            {!loading && visibleAllocations.length === 0 && (
+              <tr><td colSpan={7} className="px-4 py-6 text-center text-[#77717B] text-sm">No allocations found</td></tr>
             )}
-            {allocations.map((a) => (
+            {visibleAllocations.map((a) => (
               <tr key={a.id} className="border-b border-[#F3F2F5] last:border-0">
                 <td className="px-4 py-3 font-medium text-[#26232A]">{employeeName(a.employeeId)}</td>
                 <td className="px-4 py-3 text-[#524E57]">{typeName(a.timeOffTypeId)}</td>

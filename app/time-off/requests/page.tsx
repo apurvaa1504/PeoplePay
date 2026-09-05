@@ -1,12 +1,12 @@
 "use client";
 
-import { useEffect, useState, Suspense } from "react";
+import { useEffect, useState, useMemo, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { api, ApiError } from "@/lib/apiClient";
 import { Button } from "@/components/ui/Button";
+import { Input } from "@/components/ui/Input";
 import { Badge } from "@/components/ui/Badge";
 import { Modal } from "@/components/ui/Modal";
-import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { Plus } from "lucide-react";
 
@@ -33,6 +33,8 @@ interface TimeOffType {
   name: string;
 }
 
+const STATUS_ORDER: Record<string, number> = { PENDING: 0, APPROVED: 1, REFUSED: 1 };
+
 function RequestsContent() {
   const searchParams = useSearchParams();
   const employeeFilter = searchParams.get("employeeId") || "";
@@ -43,6 +45,7 @@ function RequestsContent() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [actioningId, setActioningId] = useState<string | null>(null);
+  const [search, setSearch] = useState("");
 
   // Modal for new request
   const [modalOpen, setModalOpen] = useState(false);
@@ -136,6 +139,23 @@ function RequestsContent() {
     return type ? type.name : id;
   }
 
+  const isEmployee = currentUserRole === "EMPLOYEE";
+  const baseRequests = isEmployee
+    ? requests.filter((r) => r.employeeId === currentUser?.employeeId)
+    : employeeFilter
+    ? requests.filter((r) => r.employeeId === employeeFilter)
+    : requests;
+
+  const visibleRequests = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    const searched = q
+      ? baseRequests.filter((r) => employeeName(r.employeeId).toLowerCase().includes(q))
+      : baseRequests;
+
+    // Pending requests first, since those need action; decided ones after.
+    return [...searched].sort((a, b) => STATUS_ORDER[a.status] - STATUS_ORDER[b.status]);
+  }, [baseRequests, employees, search]);
+
   async function handleDecision(id: string, decision: "APPROVED" | "REFUSED") {
     setActioningId(id);
     setError("");
@@ -184,13 +204,6 @@ function RequestsContent() {
     REFUSED: "danger" as const,
   };
 
-  const isEmployee = currentUserRole === "EMPLOYEE";
-  const filteredRequests = isEmployee
-    ? requests.filter((r) => r.employeeId === currentUser?.employeeId)
-    : employeeFilter
-    ? requests.filter((r) => r.employeeId === employeeFilter)
-    : requests;
-
   const canApprove =
     currentUserRole === "ADMIN" ||
     currentUserRole === "HR_MANAGER" ||
@@ -215,10 +228,18 @@ function RequestsContent() {
       </div>
 
       {error && (
-        <div className="rounded-md bg-[#FAECEC] border border-[#E9C3C3] px-3 py-2 text-xs text-[#9A4E4E] font-medium">
+        <div className="fixed top-4 left-1/2 -translate-x-1/2 z-[100] rounded-md bg-[#FAECEC] border border-[#E9C3C3] px-4 py-2.5 text-xs text-[#9A4E4E] font-medium shadow-lg max-w-lg">
           {error}
         </div>
       )}
+
+      <div className="mb-4">
+        <Input
+          placeholder="Search by employee name..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+        />
+      </div>
 
       <div className="bg-white rounded-lg border border-[#E8E3EA] overflow-hidden shadow-2xs">
         <table className="w-full text-sm">
@@ -252,14 +273,14 @@ function RequestsContent() {
                 </td>
               </tr>
             )}
-            {!loading && filteredRequests.length === 0 && (
+            {!loading && visibleRequests.length === 0 && (
               <tr>
                 <td colSpan={6} className="px-4 py-6 text-center text-[#77717B] text-sm">
                   No leave requests found.
                 </td>
               </tr>
             )}
-            {filteredRequests.map((r) => (
+            {visibleRequests.map((r) => (
               <tr key={r.id} className="border-b border-[#F3F2F5] last:border-0 hover:bg-[#FCFBFD]">
                 <td className="px-4 py-3 font-medium text-[#26232A]">
                   {employeeName(r.employeeId)}
