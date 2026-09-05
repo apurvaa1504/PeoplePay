@@ -47,9 +47,15 @@ export function AttendanceTable({
     setCorrectionError(null);
 
     try {
+      const token = typeof window !== "undefined" ? localStorage.getItem("peoplepay_token") : null;
+      const headers: Record<string, string> = { "Content-Type": "application/json" };
+      if (token) {
+        headers["Authorization"] = `Bearer ${token}`;
+      }
+
       const res = await fetch("/api/attendance", {
         method: "PATCH",
-        headers: { "Content-Type": "application/json" },
+        headers,
         body: JSON.stringify({
           id: selectedRecord.id,
           checkIn: correctionForm.checkIn ? new Date(correctionForm.checkIn).toISOString() : null,

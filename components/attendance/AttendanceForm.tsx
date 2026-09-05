@@ -13,16 +13,25 @@ interface AttendanceFormProps {
 
 export function AttendanceForm({ employees }: AttendanceFormProps) {
   const router = useRouter();
-  const now = new Date();
-  const defaultCheckIn = new Date(now.setHours(9, 0, 0, 0)).toISOString().slice(0, 16);
-  const defaultCheckOut = new Date(now.setHours(17, 0, 0, 0)).toISOString().slice(0, 16);
 
   const [formData, setFormData] = useState({
     employeeId: employees[0]?.id || "",
-    checkIn: defaultCheckIn,
-    checkOut: defaultCheckOut,
+    checkIn: "",
+    checkOut: "",
     status: "PRESENT",
   });
+
+  React.useEffect(() => {
+    const now = new Date();
+    const defaultCheckIn = new Date(now.setHours(9, 0, 0, 0)).toISOString().slice(0, 16);
+    const defaultCheckOut = new Date(now.setHours(17, 0, 0, 0)).toISOString().slice(0, 16);
+    setFormData((prev) => ({
+      ...prev,
+      employeeId: prev.employeeId || employees[0]?.id || "",
+      checkIn: prev.checkIn || defaultCheckIn,
+      checkOut: prev.checkOut || defaultCheckOut,
+    }));
+  }, [employees]);
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);

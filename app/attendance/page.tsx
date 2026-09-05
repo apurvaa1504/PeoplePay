@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { AppShell } from "@/components/layout/AppShell";
@@ -10,7 +10,7 @@ import { TableSkeleton } from "@/components/ui/Skeleton";
 import { AttendanceRecord } from "@/lib/types";
 import { Plus, Clock, Filter } from "lucide-react";
 
-export default function AttendancePage() {
+function AttendanceContent() {
   const searchParams = useSearchParams();
   const employeeFilter = searchParams.get("employeeId") || "";
 
@@ -43,6 +43,71 @@ export default function AttendancePage() {
   }, [employeeFilter, statusFilter]);
 
   return (
+    <div className="space-y-4">
+      {/* Filter bar */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-3 rounded-lg border border-[#E8E3EA] shadow-2xs">
+        <div className="flex items-center gap-2">
+          <Filter className="w-3.5 h-3.5 text-[#A49FA8]" />
+          <select
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+            className="rounded-md border border-[#E8E3EA] bg-[#FCFBFD] px-2.5 py-1.5 text-xs text-[#524E57] focus:outline-none focus:ring-2 focus:ring-[#9B7FA6]/30 cursor-pointer"
+          >
+            <option value="">All Attendance Statuses</option>
+            <option value="PRESENT">Present</option>
+            <option value="LATE">Late</option>
+            <option value="MANUAL_CORRECTION">Manual Correction</option>
+            <option value="OVERTIME">Overtime</option>
+            <option value="ABSENT">Absent</option>
+          </select>
+        </div>
+
+        {employeeFilter && (
+          <div className="flex items-center gap-2 text-xs">
+            <span className="text-[#77717B]">Filtering by Employee:</span>
+            <span className="font-semibold text-[#71547D] bg-[#F1EBF3] px-2 py-0.5 rounded">
+              ID: {employeeFilter.slice(0, 8)}
+            </span>
+            <Link
+              href="/attendance"
+              className="text-[#B56767] hover:underline text-[11px]"
+            >
+              Clear filter
+            </Link>
+          </div>
+        )}
+      </div>
+
+      {error && (
+        <div className="p-4 bg-[#FAECEC] border border-[#E9C3C3] rounded-lg text-xs text-[#9A4E4E]">
+          {error}
+        </div>
+      )}
+
+      {loading && <TableSkeleton rows={4} cols={7} />}
+
+      {!loading && !error && attendances.length === 0 && (
+        <EmptyState
+          icon={<Clock className="w-6 h-6" />}
+          title="No attendance records found"
+          description="No check-in entries recorded for this filter. Record attendance or clear filters."
+          actionLabel="Record Attendance"
+          actionHref="/attendance/new"
+        />
+      )}
+
+      {!loading && !error && attendances.length > 0 && (
+        <AttendanceTable
+          attendances={attendances}
+          onRecordUpdated={fetchAttendance}
+        />
+      )}
+    </div>
+  );
+}
+
+export default function AttendancePage() {
+  return (
     <AppShell
       breadcrumbs={[{ label: "Operations" }, { label: "Attendance" }]}
       title="Attendance Records"
@@ -56,66 +121,9 @@ export default function AttendancePage() {
         </Link>
       }
     >
-      <div className="space-y-4">
-        {/* Filter bar */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-3 rounded-lg border border-[#E8E3EA] shadow-2xs">
-          <div className="flex items-center gap-2">
-            <Filter className="w-3.5 h-3.5 text-[#A49FA8]" />
-            <select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-              className="rounded-md border border-[#E8E3EA] bg-[#FCFBFD] px-2.5 py-1.5 text-xs text-[#524E57] focus:outline-none focus:ring-2 focus:ring-[#9B7FA6]/30 cursor-pointer"
-            >
-              <option value="">All Attendance Statuses</option>
-              <option value="PRESENT">Present</option>
-              <option value="LATE">Late</option>
-              <option value="MANUAL_CORRECTION">Manual Correction</option>
-              <option value="OVERTIME">Overtime</option>
-              <option value="ABSENT">Absent</option>
-            </select>
-          </div>
-
-          {employeeFilter && (
-            <div className="flex items-center gap-2 text-xs">
-              <span className="text-[#77717B]">Filtering by Employee:</span>
-              <span className="font-semibold text-[#71547D] bg-[#F1EBF3] px-2 py-0.5 rounded">
-                ID: {employeeFilter.slice(0, 8)}
-              </span>
-              <Link
-                href="/attendance"
-                className="text-[#B56767] hover:underline text-[11px]"
-              >
-                Clear filter
-              </Link>
-            </div>
-          )}
-        </div>
-
-        {error && (
-          <div className="p-4 bg-[#FAECEC] border border-[#E9C3C3] rounded-lg text-xs text-[#9A4E4E]">
-            {error}
-          </div>
-        )}
-
-        {loading && <TableSkeleton rows={4} cols={7} />}
-
-        {!loading && !error && attendances.length === 0 && (
-          <EmptyState
-            icon={<Clock className="w-6 h-6" />}
-            title="No attendance records found"
-            description="No check-in entries recorded for this filter. Record attendance or clear filters."
-            actionLabel="Record Attendance"
-            actionHref="/attendance/new"
-          />
-        )}
-
-        {!loading && !error && attendances.length > 0 && (
-          <AttendanceTable
-            attendances={attendances}
-            onRecordUpdated={fetchAttendance}
-          />
-        )}
-      </div>
+      <Suspense fallback={<TableSkeleton rows={4} cols={7} />}>
+        <AttendanceContent />
+      </Suspense>
     </AppShell>
   );
 }

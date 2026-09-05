@@ -23,6 +23,17 @@ interface SidebarProps {
 export function Sidebar({ isOpen, onClose }: SidebarProps) {
   const pathname = usePathname();
 
+  React.useEffect(() => {
+    // Generate valid session token for Person A (HR_MANAGER) if missing
+    if (typeof window !== "undefined" && !localStorage.getItem("peoplepay_token")) {
+      fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: "hr_manager@peoplepay.com", password: "demo" }),
+      }).catch(() => {});
+    }
+  }, []);
+
   const navSections = [
     {
       title: "WORKSPACE",

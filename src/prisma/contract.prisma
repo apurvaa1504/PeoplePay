@@ -215,7 +215,7 @@ model SalaryRule {
   name              String
   code              String            @unique
   category          SalaryCategory
-    computationMethod ComputationMethod
+  computationMethod ComputationMethod
   fixedAmount       Float?
   percentage        Float?
   formula           String?
