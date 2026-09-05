@@ -43,6 +43,10 @@ export async function PATCH(
     validTo: body.validTo ?? existing.validTo,
   });
 
+  if (!updated) {
+    return NextResponse.json({ error: 'Failed to update' }, { status: 500 });
+  }
+
   return NextResponse.json({ allocation: withRemaining(updated) });
 }
 
@@ -59,6 +63,16 @@ export async function DELETE(
     return NextResponse.json({ error: 'Allocation not found' }, { status: 404 });
   }
 
-  await db.orm.public.Allocation.where({ id }).delete();
-  return NextResponse.json({ success: true });
+  try {
+    await db.orm.public.Allocation.where({ id }).delete();
+    return NextResponse.json({ success: true });
+  } catch (err: any) {
+    if (err?.sqlState === '23503' || err?.constraint) {
+      return NextResponse.json(
+        { error: 'Cannot delete: this allocation has linked time off requests' },
+        { status: 409 }
+      );
+    }
+    throw err;
+  }
 }

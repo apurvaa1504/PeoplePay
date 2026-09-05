@@ -10,6 +10,7 @@ export async function PATCH(
   const auth = requireAuth(req, ['HR_MANAGER', 'ADMIN']);
   if (auth.error) return auth.error;
 
+  const { id } = await params;
   const { decision } = await req.json();
 
   if (decision !== 'APPROVED' && decision !== 'REFUSED') {

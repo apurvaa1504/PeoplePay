@@ -27,6 +27,13 @@ export async function POST(req: NextRequest) {
     );
   }
 
+  if (allocated <= 0) {
+    return NextResponse.json(
+      { error: 'allocated must be greater than 0' },
+      { status: 400 }
+    );
+  }
+
   const employee = await db.orm.public.Employee.where({ id: employeeId }).first();
   if (!employee) {
     return NextResponse.json({ error: 'Employee not found' }, { status: 404 });
@@ -35,6 +42,17 @@ export async function POST(req: NextRequest) {
   const timeOffType = await db.orm.public.TimeOffType.where({ id: timeOffTypeId }).first();
   if (!timeOffType) {
     return NextResponse.json({ error: 'Time off type not found' }, { status: 404 });
+  }
+
+  const existingAllocation = await db.orm.public.Allocation.where({
+    employeeId,
+    timeOffTypeId,
+  }).first();
+  if (existingAllocation) {
+    return NextResponse.json(
+      { error: 'This employee already has an allocation for this time off type. Edit the existing one instead of creating a new one.' },
+      { status: 409 }
+    );
   }
 
   const allocation = await db.orm.public.Allocation.create({

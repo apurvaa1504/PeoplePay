@@ -39,6 +39,10 @@ export async function PATCH(
     payrollIntegration: body.payrollIntegration ?? existing.payrollIntegration,
   });
 
+  if (!updated) {
+    return NextResponse.json({ error: 'Failed to update' }, { status: 500 });
+  }
+
   return NextResponse.json({ timeOffType: updated });
 }
 
@@ -55,6 +59,16 @@ export async function DELETE(
     return NextResponse.json({ error: 'Time off type not found' }, { status: 404 });
   }
 
-  await db.orm.public.TimeOffType.where({ id }).delete();
-  return NextResponse.json({ success: true });
+  try {
+    await db.orm.public.TimeOffType.where({ id }).delete();
+    return NextResponse.json({ success: true });
+  } catch (err: any) {
+    if (err?.sqlState === '23503' || err?.constraint) {
+      return NextResponse.json(
+        { error: 'Cannot delete: this time off type has existing allocations or requests linked to it' },
+        { status: 409 }
+      );
+    }
+    throw err;
+  }
 }
