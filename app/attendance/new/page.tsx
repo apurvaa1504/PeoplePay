@@ -7,10 +7,25 @@ import { EmployeeRecord } from "@/lib/types";
 
 export default function NewAttendancePage() {
   const [employees, setEmployees] = useState<EmployeeRecord[]>([]);
+  const [currentEmployee, setCurrentEmployee] = useState<EmployeeRecord | null>(null);
 
   useEffect(() => {
     async function loadEmployees() {
       try {
+        const stored = localStorage.getItem("user");
+        const parsed = stored ? JSON.parse(stored) : null;
+        const isEmployee = parsed?.role === "EMPLOYEE";
+
+        if (isEmployee && parsed?.employeeId) {
+          const res = await fetch(`/api/employees/${parsed.employeeId}`);
+          if (res.ok) {
+            const emp = await res.json();
+            setCurrentEmployee(emp);
+            setEmployees([emp]);
+            return;
+          }
+        }
+
         const res = await fetch("/api/employees");
         if (res.ok) {
           const data = await res.json();
@@ -38,7 +53,7 @@ export default function NewAttendancePage() {
             Log a new check-in and check-out timestamp. Worked hours will be automatically calculated.
           </p>
         </div>
-        <AttendanceForm employees={employees} />
+        <AttendanceForm employees={employees} currentEmployee={currentEmployee} />
       </div>
     </AppShell>
   );

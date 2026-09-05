@@ -20,8 +20,20 @@ export function AttendanceTable({
   onRecordUpdated,
 }: AttendanceTableProps) {
   // Manual correction state
+  const [currentUserRole, setCurrentUserRole] = useState<string | null>(null);
   const [selectedRecord, setSelectedRecord] = useState<AttendanceRecord | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
+
+  React.useEffect(() => {
+    try {
+      const stored = localStorage.getItem("user");
+      if (stored) {
+        setCurrentUserRole(JSON.parse(stored).role);
+      }
+    } catch {}
+  }, []);
+
+  const isEmployee = currentUserRole === "EMPLOYEE";
   const [correctionForm, setCorrectionForm] = useState({
     checkIn: "",
     checkOut: "",
@@ -176,13 +188,17 @@ export function AttendanceTable({
 
                   {/* Actions: Manual Correction UI for Authorized Users */}
                   <td className="px-4 py-3 text-right">
-                    <button
-                      onClick={() => openCorrectionModal(rec)}
-                      className="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-medium text-[#71547D] bg-[#F1EBF3] hover:bg-[#E8DFEC] rounded transition-colors cursor-pointer"
-                      title="Manual Correction (Authorized HR/Admin)"
-                    >
-                      <Edit2 className="w-3 h-3" /> Correct
-                    </button>
+                    {!isEmployee ? (
+                      <button
+                        onClick={() => openCorrectionModal(rec)}
+                        className="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-medium text-[#71547D] bg-[#F1EBF3] hover:bg-[#E8DFEC] rounded transition-colors cursor-pointer"
+                        title="Manual Correction (Authorized HR/Admin)"
+                      >
+                        <Edit2 className="w-3 h-3" /> Correct
+                      </button>
+                    ) : (
+                      <span className="text-[11px] text-[#A49FA8]">Logged</span>
+                    )}
                   </td>
                 </tr>
               );

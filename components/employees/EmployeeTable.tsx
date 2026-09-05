@@ -49,7 +49,7 @@ export function EmployeeTable({ employees }: EmployeeTableProps) {
                           {emp.firstName} {emp.lastName}
                         </span>
                         <span className="text-[11px] text-[#77717B]">
-                          ID: {emp.id.slice(0, 8)}
+                          #{emp.id.replace(/-/g, '').slice(-6).toUpperCase()}
                         </span>
                       </div>
                     </Link>

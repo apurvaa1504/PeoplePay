@@ -46,11 +46,28 @@ export default function EmployeeDetailPage() {
     if (id) loadEmployee();
   }, [id]);
 
+  const [currentUserRole, setCurrentUserRole] = useState<string | null>(null);
+
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem("user");
+      if (stored) {
+        setCurrentUserRole(JSON.parse(stored).role);
+      }
+    } catch {}
+  }, []);
+
+  const isEmployeeSelfService = currentUserRole === "EMPLOYEE";
+
   if (loading) {
     return (
       <AppShell
-        breadcrumbs={[{ label: "Employees", href: "/employees" }, { label: "Profile" }]}
-        title="Employee Profile"
+        breadcrumbs={
+          isEmployeeSelfService
+            ? [{ label: "Self Service" }, { label: "My Details" }]
+            : [{ label: "Employees", href: "/employees" }, { label: "Profile" }]
+        }
+        title={isEmployeeSelfService ? "My Details" : "Employee Profile"}
       >
         <div className="space-y-6 max-w-4xl">
           <Skeleton className="h-32 w-full" />
@@ -90,32 +107,40 @@ export default function EmployeeDetailPage() {
 
   return (
     <AppShell
-      breadcrumbs={[
-        { label: "People", href: "/employees" },
-        { label: "Employees", href: "/employees" },
-        { label: `${employee.firstName} ${employee.lastName}` },
-      ]}
-      title={`${employee.firstName} ${employee.lastName}`}
+      breadcrumbs={
+        isEmployeeSelfService
+          ? [{ label: "Self Service" }, { label: "My Details" }]
+          : [
+              { label: "People", href: "/employees" },
+              { label: "Employees", href: "/employees" },
+              { label: `${employee.firstName} ${employee.lastName}` },
+            ]
+      }
+      title={isEmployeeSelfService ? "My Details" : `${employee.firstName} ${employee.lastName}`}
       actions={
-        <div className="flex items-center gap-2">
-          <Link
-            href={`/employees/${employee.id}/edit`}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-white border border-[#E8E3EA] hover:border-[#DCD4DF] text-[#26232A] text-xs font-medium shadow-2xs transition-colors"
-          >
-            <Edit className="w-3.5 h-3.5 text-[#77717B]" />
-            <span>Edit Profile</span>
-          </Link>
-        </div>
+        !isEmployeeSelfService ? (
+          <div className="flex items-center gap-2">
+            <Link
+              href={`/employees/${employee.id}/edit`}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-white border border-[#E8E3EA] hover:border-[#DCD4DF] text-[#26232A] text-xs font-medium shadow-2xs transition-colors"
+            >
+              <Edit className="w-3.5 h-3.5 text-[#77717B]" />
+              <span>Edit Profile</span>
+            </Link>
+          </div>
+        ) : null
       }
     >
       <div className="space-y-6 max-w-5xl">
-        {/* Back navigation */}
-        <Link
-          href="/employees"
-          className="inline-flex items-center gap-1.5 text-xs text-[#77717B] hover:text-[#26232A] transition-colors"
-        >
-          <ArrowLeft className="w-3.5 h-3.5" /> Back to employee list
-        </Link>
+        {/* Back navigation only for HR / Admin */}
+        {!isEmployeeSelfService && (
+          <Link
+            href="/employees"
+            className="inline-flex items-center gap-1.5 text-xs text-[#77717B] hover:text-[#26232A] transition-colors"
+          >
+            <ArrowLeft className="w-3.5 h-3.5" /> Back to employee list
+          </Link>
+        )}
 
         {/* Identity Header Card */}
         <div className="bg-white rounded-lg border border-[#E8E3EA] p-6 shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -289,9 +314,9 @@ export default function EmployeeDetailPage() {
               </div>
 
               <div className="flex items-center justify-between py-1">
-                <span className="text-[#77717B]">Assigned Module</span>
+                <span className="text-[#77717B]">Department Status</span>
                 <span className="text-[#71547D] font-medium text-[11px] bg-[#F1EBF3] px-2 py-0.5 rounded">
-                  Person A Core
+                  {employee.department ? "Assigned" : "Unassigned"}
                 </span>
               </div>
             </div>

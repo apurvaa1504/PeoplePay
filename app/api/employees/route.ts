@@ -8,6 +8,7 @@ export async function GET(req: NextRequest) {
   const department = searchParams.get("department") || "";
   const status = searchParams.get("status") || "";
   const jobPosition = searchParams.get("jobPosition") || "";
+  const userId = searchParams.get("userId") || "";
 
   if (process.env.DATABASE_URL) {
     try {
@@ -51,6 +52,9 @@ export async function GET(req: NextRequest) {
       }
       if (jobPosition) {
         list = list.filter((e: any) => e.jobPosition === jobPosition);
+      }
+      if (userId) {
+        list = list.filter((e: any) => e.userId === userId);
       }
 
       return NextResponse.json(list);
