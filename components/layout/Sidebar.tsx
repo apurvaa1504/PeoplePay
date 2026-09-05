@@ -68,6 +68,22 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
       } catch {
         // Ignore parse error
       }
+
+      // Generate valid session token for Person A (HR_MANAGER) if missing
+      if (!localStorage.getItem("peoplepay_token") && !localStorage.getItem("token")) {
+        fetch("/api/auth/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email: "hr_manager@peoplepay.com", password: "demo" }),
+        })
+          .then((res) => res.json())
+          .then((data) => {
+            if (data.token) {
+              localStorage.setItem("peoplepay_token", data.token);
+            }
+          })
+          .catch(() => {});
+      }
     }
   }, []);
 
