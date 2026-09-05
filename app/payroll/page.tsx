@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/Button";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { TableSkeleton } from "@/components/ui/Skeleton";
 import { PayrunTable, PayrunItem, PayrunStatus } from "@/components/payroll/PayrunTable";
+import { NewPayrunDialog } from "@/components/payroll/NewPayrunDialog";
 import { Plus, Search, Filter, CreditCard, RefreshCw, AlertCircle } from "lucide-react";
 
 export default function PayrollPage() {
@@ -14,6 +15,7 @@ export default function PayrollPage() {
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("");
+  const [isWizardOpen, setIsWizardOpen] = useState(false);
 
   const fetchPayruns = async () => {
     try {
@@ -51,8 +53,10 @@ export default function PayrollPage() {
   };
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    fetchPayruns();
+    const timer = setTimeout(() => {
+      fetchPayruns();
+    }, 0);
+    return () => clearTimeout(timer);
   }, []);
 
   const filteredPayruns = useMemo(() => {
@@ -96,9 +100,7 @@ export default function PayrollPage() {
           </Button>
           <Button
             size="sm"
-            onClick={() => {
-              alert("New Payrun creation flow will be wired with backend in the next step.");
-            }}
+            onClick={() => setIsWizardOpen(true)}
           >
             <Plus className="w-4 h-4" />
             <span>New Payrun</span>
@@ -169,15 +171,19 @@ export default function PayrollPage() {
             onAction={
               searchQuery || statusFilter
                 ? handleClearFilters
-                : () => {
-                    alert("New Payrun creation flow will be wired with backend in the next step.");
-                  }
+                : () => setIsWizardOpen(true)
             }
           />
         ) : (
           <PayrunTable payruns={filteredPayruns} />
         )}
       </div>
+
+      <NewPayrunDialog
+        isOpen={isWizardOpen}
+        onClose={() => setIsWizardOpen(false)}
+        onSuccess={() => fetchPayruns()}
+      />
     </AppShell>
   );
 }
