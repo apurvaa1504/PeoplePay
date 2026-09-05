@@ -1,61 +1,63 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { AppShell } from "@/components/layout/AppShell";
 import { Button } from "@/components/ui/Button";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { TableSkeleton } from "@/components/ui/Skeleton";
 import { PayrunTable, PayrunItem, PayrunStatus } from "@/components/payroll/PayrunTable";
-import { Plus, Search, Filter, CreditCard, RefreshCw } from "lucide-react";
-
-const MOCK_PAYRUNS: PayrunItem[] = [
-  {
-    id: "PR-2026-09",
-    name: "September 2026 Regular Payrun",
-    structureId: "str-001",
-    structureName: "Standard Full-Time Structure",
-    periodStart: "2026-09-01",
-    periodEnd: "2026-09-30",
-    status: "DRAFT",
-    createdAt: "2026-09-05T08:30:00Z",
-  },
-  {
-    id: "PR-2026-08",
-    name: "August 2026 Regular Payrun",
-    structureId: "str-001",
-    structureName: "Standard Full-Time Structure",
-    periodStart: "2026-08-01",
-    periodEnd: "2026-08-31",
-    status: "PAID",
-    createdAt: "2026-08-25T10:00:00Z",
-  },
-  {
-    id: "PR-2026-08-EXEC",
-    name: "August 2026 Executive Payroll",
-    structureId: "str-002",
-    structureName: "Executive & Leadership Structure",
-    periodStart: "2026-08-01",
-    periodEnd: "2026-08-31",
-    status: "VALIDATED",
-    createdAt: "2026-08-26T14:20:00Z",
-  },
-  {
-    id: "PR-2026-07-MID",
-    name: "July 2026 Mid-Month Contractors",
-    structureId: "str-003",
-    structureName: "Contractor Hourly Stipend",
-    periodStart: "2026-07-01",
-    periodEnd: "2026-07-15",
-    status: "COMPUTED",
-    createdAt: "2026-07-16T11:45:00Z",
-  },
-];
+import { NewPayrunDialog } from "@/components/payroll/NewPayrunDialog";
+import { Plus, Search, Filter, CreditCard, RefreshCw, AlertCircle } from "lucide-react";
 
 export default function PayrollPage() {
-  const [payruns] = useState<PayrunItem[]>(MOCK_PAYRUNS);
-  const [loading, setLoading] = useState(false);
+  const [payruns, setPayruns] = useState<PayrunItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("");
+  const [isWizardOpen, setIsWizardOpen] = useState(false);
+
+  const fetchPayruns = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      const token = typeof window !== "undefined" ? localStorage.getItem("peoplepay_token") : null;
+      const headers: Record<string, string> = {};
+      if (token) {
+        headers["Authorization"] = `Bearer ${token}`;
+      }
+
+      const res = await fetch("/api/payruns", { headers });
+      if (!res.ok) {
+        throw new Error("Failed to fetch payruns");
+      }
+      const data = await res.json();
+
+      const formatted = data.map((p: PayrunItem & { structure?: { name: string } }) => ({
+        id: p.id,
+        name: p.name,
+        structureId: p.structureId,
+        structureName: p.structure?.name,
+        periodStart: p.periodStart,
+        periodEnd: p.periodEnd,
+        status: p.status,
+        createdAt: p.createdAt,
+      }));
+      setPayruns(formatted);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "An error occurred");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      fetchPayruns();
+    }, 0);
+    return () => clearTimeout(timer);
+  }, []);
 
   const filteredPayruns = useMemo(() => {
     return payruns.filter((p) => {
@@ -74,10 +76,7 @@ export default function PayrollPage() {
   }, [payruns, searchQuery, statusFilter]);
 
   const handleSimulateRefresh = () => {
-    setLoading(true);
-    setTimeout(() => {
-      setLoading(false);
-    }, 400);
+    fetchPayruns();
   };
 
   const handleClearFilters = () => {
@@ -101,9 +100,7 @@ export default function PayrollPage() {
           </Button>
           <Button
             size="sm"
-            onClick={() => {
-              alert("New Payrun creation flow will be wired with backend in the next step.");
-            }}
+            onClick={() => setIsWizardOpen(true)}
           >
             <Plus className="w-4 h-4" />
             <span>New Payrun</span>
@@ -150,9 +147,17 @@ export default function PayrollPage() {
           </div>
         </div>
 
-        {/* Content Section: Loading | Empty | Data Table */}
+        {/* Content Section: Loading | Error | Empty | Data Table */}
         {loading ? (
           <TableSkeleton rows={4} cols={6} />
+        ) : error ? (
+          <EmptyState
+            icon={<AlertCircle className="w-6 h-6 text-red-500" />}
+            title="Error loading payruns"
+            description={error}
+            actionLabel="Try Again"
+            onAction={fetchPayruns}
+          />
         ) : filteredPayruns.length === 0 ? (
           <EmptyState
             icon={<CreditCard className="w-6 h-6" />}
@@ -166,15 +171,19 @@ export default function PayrollPage() {
             onAction={
               searchQuery || statusFilter
                 ? handleClearFilters
-                : () => {
-                    alert("New Payrun creation flow will be wired with backend in the next step.");
-                  }
+                : () => setIsWizardOpen(true)
             }
           />
         ) : (
           <PayrunTable payruns={filteredPayruns} />
         )}
       </div>
+
+      <NewPayrunDialog
+        isOpen={isWizardOpen}
+        onClose={() => setIsWizardOpen(false)}
+        onSuccess={() => fetchPayruns()}
+      />
     </AppShell>
   );
 }

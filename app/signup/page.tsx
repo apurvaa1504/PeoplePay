@@ -7,6 +7,8 @@ import { Button } from "@/components/ui/Button";
 
 export default function SignupPage() {
   const router = useRouter();
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -21,7 +23,13 @@ export default function SignupPage() {
       const res = await fetch("/api/auth/signup", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({
+          email,
+          password,
+          firstName: firstName.trim(),
+          lastName: lastName.trim(),
+          role: "EMPLOYEE",
+        }),
       });
 
       const data = await res.json();
@@ -32,7 +40,18 @@ export default function SignupPage() {
         return;
       }
 
-      router.push("/login");
+      // Automatically log the user in if token returned or redirect to login
+      if (data.token && data.user) {
+        localStorage.setItem("token", data.token);
+        localStorage.setItem("user", JSON.stringify(data.user));
+        if (data.user.employeeId) {
+          router.push(`/employees/${data.user.employeeId}`);
+        } else {
+          router.push("/");
+        }
+      } else {
+        router.push("/login");
+      }
     } catch {
       setError("Something went wrong. Please try again.");
       setIsLoading(false);
@@ -46,11 +65,31 @@ export default function SignupPage() {
         <p className="text-sm text-[#77717B] mb-6">Create your PeoplePay360 account</p>
 
         <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="grid grid-cols-2 gap-3">
+            <Input
+              label="First Name"
+              type="text"
+              value={firstName}
+              onChange={(e) => setFirstName(e.target.value)}
+              placeholder="e.g. Rahul"
+              required
+            />
+            <Input
+              label="Last Name"
+              type="text"
+              value={lastName}
+              onChange={(e) => setLastName(e.target.value)}
+              placeholder="e.g. Verma"
+              required
+            />
+          </div>
+
           <Input
             label="Email"
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
+            placeholder="name@company.com"
             required
           />
           <Input

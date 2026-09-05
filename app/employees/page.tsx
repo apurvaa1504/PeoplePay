@@ -19,6 +19,35 @@ export default function EmployeesPage() {
   const [department, setDepartment] = useState("");
   const [status, setStatus] = useState("");
   const [viewMode, setViewMode] = useState<"list" | "kanban">("list");
+  const [currentUserRole, setCurrentUserRole] = useState<string | null>(null);
+
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem("user");
+      if (stored) {
+        const user = JSON.parse(stored);
+        setCurrentUserRole(user.role);
+        if (user.role === "EMPLOYEE") {
+          if (user.employeeId) {
+            window.location.replace(`/employees/${user.employeeId}`);
+            return;
+          } else if (user.id) {
+            // Find employee record by userId
+            fetch(`/api/employees?userId=${user.id}`)
+              .then((res) => res.json())
+              .then((list) => {
+                if (Array.isArray(list) && list.length > 0) {
+                  user.employeeId = list[0].id;
+                  localStorage.setItem("user", JSON.stringify(user));
+                  window.location.replace(`/employees/${list[0].id}`);
+                }
+              })
+              .catch(() => {});
+          }
+        }
+      }
+    } catch {}
+  }, []);
 
   const fetchEmployees = async () => {
     setLoading(true);
@@ -59,6 +88,20 @@ export default function EmployeesPage() {
 
   const activeEmployees = employees.filter((e) => e.status === "ACTIVE");
   const inactiveEmployees = employees.filter((e) => e.status === "INACTIVE");
+
+  if (currentUserRole === "EMPLOYEE") {
+    return (
+      <AppShell
+        breadcrumbs={[{ label: "Self Service" }, { label: "My Details" }]}
+        title="My Details"
+      >
+        <div className="flex flex-col items-center justify-center min-h-[300px] gap-3">
+          <div className="w-8 h-8 rounded-full border-2 border-[#9B7FA6] border-t-transparent animate-spin" />
+          <p className="text-xs text-[#77717B]">Opening your employee details...</p>
+        </div>
+      </AppShell>
+    );
+  }
 
   return (
     <AppShell

@@ -19,12 +19,30 @@ function AttendanceContent() {
   const [error, setError] = useState<string | null>(null);
   const [statusFilter, setStatusFilter] = useState("");
 
+  const [currentUser, setCurrentUser] = useState<any>(null);
+
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem("user");
+      if (stored) {
+        setCurrentUser(JSON.parse(stored));
+      }
+    } catch {}
+  }, []);
+
   const fetchAttendance = async () => {
     try {
       setLoading(true);
       setError(null);
+
+      // Determine employee ID to filter by
+      const storedUser = typeof window !== "undefined" ? localStorage.getItem("user") : null;
+      const parsedUser = storedUser ? JSON.parse(storedUser) : null;
+      const isEmployee = parsedUser?.role === "EMPLOYEE";
+      const targetEmpId = isEmployee ? (parsedUser?.employeeId || "none") : employeeFilter;
+
       const params = new URLSearchParams();
-      if (employeeFilter) params.append("employeeId", employeeFilter);
+      if (targetEmpId) params.append("employeeId", targetEmpId);
       if (statusFilter) params.append("status", statusFilter);
 
       const res = await fetch(`/api/attendance?${params.toString()}`);
@@ -62,19 +80,28 @@ function AttendanceContent() {
           </select>
         </div>
 
-        {employeeFilter && (
+        {currentUser?.role === "EMPLOYEE" ? (
           <div className="flex items-center gap-2 text-xs">
-            <span className="text-[#77717B]">Filtering by Employee:</span>
-            <span className="font-semibold text-[#71547D] bg-[#F1EBF3] px-2 py-0.5 rounded">
-              ID: {employeeFilter.slice(0, 8)}
+            <span className="text-[#77717B]">Showing:</span>
+            <span className="font-semibold text-[#71547D] bg-[#F1EBF3] px-2.5 py-0.5 rounded">
+              My Attendance Records
             </span>
-            <Link
-              href="/attendance"
-              className="text-[#B56767] hover:underline text-[11px]"
-            >
-              Clear filter
-            </Link>
           </div>
+        ) : (
+          employeeFilter && (
+            <div className="flex items-center gap-2 text-xs">
+              <span className="text-[#77717B]">Filtering by Employee:</span>
+              <span className="font-semibold text-[#71547D] bg-[#F1EBF3] px-2 py-0.5 rounded">
+                #{employeeFilter.replace(/-/g, '').slice(-6).toUpperCase()}
+              </span>
+              <Link
+                href="/attendance"
+                className="text-[#B56767] hover:underline text-[11px]"
+              >
+                Clear filter
+              </Link>
+            </div>
+          )
         )}
       </div>
 

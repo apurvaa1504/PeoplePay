@@ -126,11 +126,11 @@ export default function AllocationsPage() {
   }
 
   return (
-    <div className="p-6 max-w-5xl mx-auto">
-      <div className="flex items-center justify-between mb-6">
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-lg font-semibold text-[#26232A]">Allocations</h1>
-          <p className="text-sm text-[#77717B]">Employee leave balances</p>
+          <h2 className="text-base font-semibold text-[#26232A]">Allocations</h2>
+          <p className="text-xs text-[#77717B]">Employee leave balances and allowances</p>
         </div>
         <Button onClick={openCreate}>+ New Allocation</Button>
       </div>

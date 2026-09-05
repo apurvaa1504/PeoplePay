@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
@@ -9,17 +9,32 @@ import { EmployeeRecord } from "@/lib/types";
 
 interface AttendanceFormProps {
   employees: EmployeeRecord[];
+  currentEmployee?: EmployeeRecord | null;
 }
 
-export function AttendanceForm({ employees }: AttendanceFormProps) {
+export function AttendanceForm({ employees, currentEmployee }: AttendanceFormProps) {
   const router = useRouter();
+  const [currentUser, setCurrentUser] = useState<any>(null);
 
   const [formData, setFormData] = useState({
-    employeeId: employees[0]?.id || "",
+    employeeId: currentEmployee?.id || employees[0]?.id || "",
     checkIn: "",
     checkOut: "",
     status: "PRESENT",
   });
+
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem("user");
+      if (stored) {
+        const user = JSON.parse(stored);
+        setCurrentUser(user);
+        if (user.role === "EMPLOYEE" && user.employeeId) {
+          setFormData((prev) => ({ ...prev, employeeId: user.employeeId }));
+        }
+      }
+    } catch {}
+  }, []);
 
   React.useEffect(() => {
     const now = new Date();
@@ -27,11 +42,11 @@ export function AttendanceForm({ employees }: AttendanceFormProps) {
     const defaultCheckOut = new Date(now.setHours(17, 0, 0, 0)).toISOString().slice(0, 16);
     setFormData((prev) => ({
       ...prev,
-      employeeId: prev.employeeId || employees[0]?.id || "",
+      employeeId: prev.employeeId || currentEmployee?.id || employees[0]?.id || "",
       checkIn: prev.checkIn || defaultCheckIn,
       checkOut: prev.checkOut || defaultCheckOut,
     }));
-  }, [employees]);
+  }, [employees, currentEmployee]);
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -100,13 +115,35 @@ export function AttendanceForm({ employees }: AttendanceFormProps) {
           </p>
         </div>
 
-        <Select
-          label="Employee"
-          value={formData.employeeId}
-          options={employeeOptions}
-          onChange={(e) => setFormData({ ...formData, employeeId: e.target.value })}
-          required
-        />
+        {currentUser?.role === "EMPLOYEE" ? (
+          <div className="space-y-1.5">
+            <label className="block text-xs font-semibold text-[#26232A]">
+              Employee
+            </label>
+            <div className="px-3 py-2 rounded-md bg-[#F9F8FA] border border-[#E8E3EA] flex items-center justify-between text-xs">
+              <span className="font-semibold text-[#26232A]">
+                {(() => {
+                  const myEmp = employees.find((e) => e.id === formData.employeeId) || currentEmployee;
+                  return myEmp ? `${myEmp.firstName} ${myEmp.lastName} (${myEmp.jobPosition || "Staff"})` : "Your Employee Record";
+                })()}
+              </span>
+              <span className="text-[11px] text-[#71547D] bg-[#F1EBF3] px-2 py-0.5 rounded font-medium">
+                Logged-in Employee
+              </span>
+            </div>
+            <p className="text-[11px] text-[#77717B]">
+              You can only submit attendance records for your own profile.
+            </p>
+          </div>
+        ) : (
+          <Select
+            label="Employee"
+            value={formData.employeeId}
+            options={employeeOptions}
+            onChange={(e) => setFormData({ ...formData, employeeId: e.target.value })}
+            required
+          />
+        )}
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <Input
