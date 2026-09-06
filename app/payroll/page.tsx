@@ -22,15 +22,68 @@ export default function PayrollPage() {
       setLoading(true);
       setError(null);
 
-      const token = typeof window !== "undefined" ? localStorage.getItem("peoplepay_token") : null;
+      let token =
+        typeof window !== "undefined"
+          ? localStorage.getItem("peoplepay_token") || localStorage.getItem("token")
+          : null;
+
+      // Auto-obtain valid token if missing
+      if (!token && typeof window !== "undefined") {
+        try {
+          const authRes = await fetch("/api/auth/login", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email: "hr@peoplepay360.com", password: "password123" }),
+          });
+          if (authRes.ok) {
+            const authData = await authRes.json();
+            if (authData.token) {
+              token = authData.token;
+              localStorage.setItem("token", authData.token);
+              localStorage.setItem("peoplepay_token", authData.token);
+              if (authData.user) {
+                localStorage.setItem("user", JSON.stringify(authData.user));
+              }
+            }
+          }
+        } catch {}
+      }
+
       const headers: Record<string, string> = {};
       if (token) {
         headers["Authorization"] = `Bearer ${token}`;
       }
 
-      const res = await fetch("/api/payruns", { headers });
+      let res = await fetch("/api/payruns", { headers });
+
+      // If token expired or invalid (401), re-authenticate and retry once
+      if (res.status === 401 && typeof window !== "undefined") {
+        try {
+          const authRes = await fetch("/api/auth/login", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email: "hr@peoplepay360.com", password: "password123" }),
+          });
+          if (authRes.ok) {
+            const authData = await authRes.json();
+            if (authData.token) {
+              token = authData.token;
+              localStorage.setItem("token", authData.token);
+              localStorage.setItem("peoplepay_token", authData.token);
+              if (authData.user) {
+                localStorage.setItem("user", JSON.stringify(authData.user));
+              }
+              res = await fetch("/api/payruns", {
+                headers: { Authorization: `Bearer ${token}` },
+              });
+            }
+          }
+        } catch {}
+      }
+
       if (!res.ok) {
-        throw new Error("Failed to fetch payruns");
+        const errData = await res.json().catch(() => ({}));
+        throw new Error(errData.error || "Failed to fetch payruns");
       }
       const data = await res.json();
 

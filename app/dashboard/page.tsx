@@ -31,6 +31,9 @@ interface DashboardMetrics {
   departmentDistribution: { [key: string]: number };
   recentEmployees: any[];
   recentAttendances: any[];
+  totalPayruns: number;
+  paidPayruns: number;
+  recentPayruns: any[];
 }
 
 export default function DashboardPage() {
@@ -43,17 +46,19 @@ export default function DashboardPage() {
         setLoading(true);
 
         // Parallel fetch for Person A's data + teammate endpoints
-        const [empRes, contractRes, attRes, leaveRes] = await Promise.all([
+        const [empRes, contractRes, attRes, leaveRes, payrunRes] = await Promise.all([
           fetch("/api/employees").catch(() => null),
           fetch("/api/contracts").catch(() => null),
           fetch("/api/attendance").catch(() => null),
           fetch("/api/time-off-requests").catch(() => null),
+          fetch("/api/payruns").catch(() => null),
         ]);
 
         const employees = empRes && empRes.ok ? await empRes.json() : [];
         const contracts = contractRes && contractRes.ok ? await contractRes.json() : [];
         const attendances = attRes && attRes.ok ? await attRes.json() : [];
         const leaves = leaveRes && leaveRes.ok ? await leaveRes.json() : [];
+        const payruns = payrunRes && payrunRes.ok ? await payrunRes.json() : [];
 
         // 1. Employee metrics
         const totalEmployees = Array.isArray(employees) ? employees.length : 0;
@@ -90,6 +95,12 @@ export default function DashboardPage() {
           ? leaves.filter((l: any) => l.status === "APPROVED").length
           : 0;
 
+        // 5. Payroll metrics
+        const totalPayruns = Array.isArray(payruns) ? payruns.length : 0;
+        const paidPayruns = Array.isArray(payruns)
+          ? payruns.filter((p: any) => p.status === "PAID").length
+          : 0;
+
         setMetrics({
           totalEmployees,
           activeEmployees,
@@ -101,6 +112,9 @@ export default function DashboardPage() {
           departmentDistribution: deptDist,
           recentEmployees: Array.isArray(employees) ? employees.slice(0, 5) : [],
           recentAttendances: Array.isArray(attendances) ? attendances.slice(0, 5) : [],
+          totalPayruns,
+          paidPayruns,
+          recentPayruns: Array.isArray(payruns) ? payruns.slice(0, 4) : [],
         });
       } catch (err) {
         console.error("Failed to load dashboard metrics", err);
@@ -161,9 +175,10 @@ export default function DashboardPage() {
         </div>
 
         {/* Top KPI Cards Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
           {loading ? (
             <>
+              <Skeleton className="h-28" />
               <Skeleton className="h-28" />
               <Skeleton className="h-28" />
               <Skeleton className="h-28" />
@@ -198,6 +213,13 @@ export default function DashboardPage() {
                 description="Time off requests confirmed"
                 icon={<Palmtree className="w-4 h-4" />}
                 variant="blue"
+              />
+              <StatCard
+                title="Payruns"
+                value={metrics?.totalPayruns || 0}
+                description={`${metrics?.paidPayruns || 0} disbursed cycles`}
+                icon={<DollarSign className="w-4 h-4" />}
+                variant="green"
               />
             </>
           )}

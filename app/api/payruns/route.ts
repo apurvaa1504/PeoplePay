@@ -36,9 +36,10 @@ export async function GET(req: NextRequest) {
         }));
 
         return NextResponse.json(formatted);
-    } catch {
+    } catch (err: any) {
+        console.error('Error in GET /api/payruns:', err);
         return NextResponse.json(
-            { error: 'Failed to fetch payruns' },
+            { error: err?.message || 'Failed to fetch payruns' },
             { status: 500 }
         );
     }
