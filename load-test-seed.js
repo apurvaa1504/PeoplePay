@@ -70,15 +70,19 @@ async function main() {
   const ADMIN_ID = '00000000-0000-0000-0000-000000000001';
   const HR_ID = '00000000-0000-0000-0000-000000000002';
   const EMP_ID = '00000000-0000-0000-0000-000000000003';
+  const PAYROLL_USER_ID = '00000000-0000-0000-0000-000000000004';
+  const PAYROLL_MGR_ID = '00000000-0000-0000-0000-000000000005';
 
   await client.query(
     `INSERT INTO users (id, email, "passwordHash", role, "createdAt") VALUES
-     ($1, 'admin@peoplepay360.com', $4, 'ADMIN', now()),
-     ($2, 'hr@peoplepay360.com', $4, 'HR_MANAGER', now()),
-     ($3, 'employee@peoplepay360.com', $4, 'EMPLOYEE', now())`,
-    [ADMIN_ID, HR_ID, EMP_ID, passwordHash]
+     ($1, 'admin@peoplepay360.com', $6, 'ADMIN', now()),
+     ($2, 'hr@peoplepay360.com', $6, 'HR_MANAGER', now()),
+     ($3, 'employee@peoplepay360.com', $6, 'EMPLOYEE', now()),
+     ($4, 'payroll@peoplepay360.com', $6, 'HR_PAYROLL_USER', now()),
+     ($5, 'payroll_manager@peoplepay360.com', $6, 'HR_PAYROLL_MANAGER', now())`,
+    [ADMIN_ID, HR_ID, EMP_ID, PAYROLL_USER_ID, PAYROLL_MGR_ID, passwordHash]
   );
-  console.log('  users: inserted 3 demo accounts (admin/hr/employee@peoplepay360.com)');
+  console.log('  users: inserted 5 demo accounts (admin, hr, employee, payroll, payroll_manager)');
 
   // --- Working Schedules (5 — a handful of standard shift patterns) ---
   const scheduleIds = Array.from({ length: SCHEDULE_COUNT }, () => randomUUID());
@@ -153,14 +157,16 @@ async function main() {
     employeeIds[i], rnd(FIRST_NAMES), rnd(LAST_NAMES), rnd(DEPARTMENTS), rnd(POSITIONS), 'ACTIVE', rnd(scheduleIds),
   ], EMPLOYEE_COUNT);
 
-  // Give the seeded HR/EMPLOYEE login accounts real employee records too
+  // Give the seeded HR/EMPLOYEE/PAYROLL login accounts real employee records too
   await client.query(
     `INSERT INTO employees (id, "userId", "firstName", "lastName", department, "jobPosition", status, "createdAt") VALUES
-     ($1, $3, 'Priya', 'Sharma', 'Human Resources', 'HR Manager', 'ACTIVE', now()),
-     ($2, $4, 'Rahul', 'Verma', 'Engineering', 'Software Engineer', 'ACTIVE', now())`,
-    [randomUUID(), randomUUID(), HR_ID, EMP_ID]
+     ($1, $5, 'Priya', 'Sharma', 'Human Resources', 'HR Manager', 'ACTIVE', now()),
+     ($2, $6, 'Rahul', 'Verma', 'Engineering', 'Software Engineer', 'ACTIVE', now()),
+     ($3, $7, 'Vikram', 'Mehta', 'Finance', 'Payroll Specialist', 'ACTIVE', now()),
+     ($4, $8, 'Sunita', 'Rao', 'Finance', 'Payroll Manager', 'ACTIVE', now())`,
+    [randomUUID(), randomUUID(), randomUUID(), randomUUID(), HR_ID, EMP_ID, PAYROLL_USER_ID, PAYROLL_MGR_ID]
   );
-  console.log('  employees: inserted 200 + 2 linked to demo login accounts');
+  console.log('  employees: inserted 200 + 4 linked to demo login accounts');
 
   // --- Contracts (1 per employee) ---
   await bulkInsert('contracts', ['id', 'employeeId', 'startDate', 'wage', 'department', 'jobPosition', 'structureId', 'status'], (i) => [
@@ -230,8 +236,10 @@ async function main() {
 
   console.log('\nLogin credentials — password: password123');
   console.log('  admin@peoplepay360.com (ADMIN)');
-  console.log('  hr@peoplepay360.com (HR_MANAGER, linked to employee Priya Sharma)');
-  console.log('  employee@peoplepay360.com (EMPLOYEE, linked to employee Rahul Verma)');
+  console.log('  hr@peoplepay360.com (HR_MANAGER, linked to Priya Sharma)');
+  console.log('  employee@peoplepay360.com (EMPLOYEE, linked to Rahul Verma)');
+  console.log('  payroll@peoplepay360.com (HR_PAYROLL_USER, linked to Vikram Mehta)');
+  console.log('  payroll_manager@peoplepay360.com (HR_PAYROLL_MANAGER, linked to Sunita Rao)');
 
   await client.end();
 }
