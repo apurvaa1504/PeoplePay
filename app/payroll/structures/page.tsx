@@ -42,6 +42,14 @@ interface Structure {
   active: boolean;
 }
 
+function authHeaders(extra?: Record<string, string>) {
+  const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
+  return {
+    ...(extra ?? {}),
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+  };
+}
+
 export default function SalaryStructuresPage() {
   const [structures, setStructures] = useState<Structure[]>([]);
   const [selectedStructure, setSelectedStructure] = useState<Structure | null>(null);
@@ -65,7 +73,7 @@ export default function SalaryStructuresPage() {
   const fetchStructures = async () => {
     try {
       setLoading(true);
-      const res = await fetch('/api/salary-structures');
+      const res = await fetch('/api/salary-structures', { headers: authHeaders() });
       if (!res.ok) throw new Error('Failed to fetch salary structures');
       const data = await res.json();
       setStructures(data);
@@ -81,7 +89,7 @@ export default function SalaryStructuresPage() {
 
   const fetchAllRules = async () => {
     try {
-      const res = await fetch('/api/salary-rules');
+      const res = await fetch('/api/salary-rules', { headers: authHeaders() });
       if (res.ok) {
         const data = await res.json();
         setAvailableRules(data);
@@ -94,7 +102,7 @@ export default function SalaryStructuresPage() {
   const fetchStructureRules = async (structureId: string) => {
     try {
       setRulesLoading(true);
-      const res = await fetch(`/api/salary-structures/${structureId}/rules`);
+      const res = await fetch(`/api/salary-structures/${structureId}/rules`, { headers: authHeaders() });
       if (!res.ok) throw new Error('Failed to fetch rules for structure');
       const data = await res.json();
       setStructureRules(data);
@@ -124,7 +132,7 @@ export default function SalaryStructuresPage() {
       setCreateLoading(true);
       const res = await fetch('/api/salary-structures', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: authHeaders({ 'Content-Type': 'application/json' }),
         body: JSON.stringify({ name: newStructureName.trim(), active: true }),
       });
       if (!res.ok) {
@@ -151,7 +159,7 @@ export default function SalaryStructuresPage() {
       setAssignLoading(true);
       const res = await fetch(`/api/salary-structures/${selectedStructure.id}/rules`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: authHeaders({ 'Content-Type': 'application/json' }),
         body: JSON.stringify({
           ruleId: selectedRuleId,
           sequence: Number(ruleSequence),

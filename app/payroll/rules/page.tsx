@@ -29,6 +29,14 @@ interface SalaryRule {
   formula?: string | null;
 }
 
+function authHeaders(extra?: Record<string, string>) {
+  const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
+  return {
+    ...(extra ?? {}),
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+  };
+}
+
 export default function SalaryRulesPage() {
   const [rules, setRules] = useState<SalaryRule[]>([]);
   const [loading, setLoading] = useState(true);
@@ -51,7 +59,7 @@ export default function SalaryRulesPage() {
     try {
       setLoading(true);
       setError(null);
-      const res = await fetch('/api/salary-rules');
+      const res = await fetch('/api/salary-rules', { headers: authHeaders() });
       if (!res.ok) throw new Error('Failed to fetch salary rules');
       const data = await res.json();
       setRules(data);
@@ -89,7 +97,7 @@ export default function SalaryRulesPage() {
 
       const res = await fetch('/api/salary-rules', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: authHeaders({ 'Content-Type': 'application/json' }),
         body: JSON.stringify(payload),
       });
 
