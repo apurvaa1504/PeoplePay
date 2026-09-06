@@ -9,7 +9,9 @@ import { EmployeeFilters } from "@/components/employees/EmployeeFilters";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { TableSkeleton, CardGridSkeleton } from "@/components/ui/Skeleton";
 import { EmployeeRecord } from "@/lib/types";
-import { Plus, Users, RefreshCw } from "lucide-react";
+import { Plus, Users, RefreshCw, ChevronLeft, ChevronRight } from "lucide-react";
+
+const PAGE_SIZE = 10;
 
 export default function EmployeesPage() {
   const [employees, setEmployees] = useState<EmployeeRecord[]>([]);
@@ -20,6 +22,7 @@ export default function EmployeesPage() {
   const [status, setStatus] = useState("");
   const [viewMode, setViewMode] = useState<"list" | "kanban">("list");
   const [currentUserRole, setCurrentUserRole] = useState<string | null>(null);
+  const [page, setPage] = useState(1);
 
   useEffect(() => {
     try {
@@ -32,7 +35,6 @@ export default function EmployeesPage() {
             window.location.replace(`/employees/${user.employeeId}`);
             return;
           } else if (user.id) {
-            // Find employee record by userId
             fetch(`/api/employees?userId=${user.id}`)
               .then((res) => res.json())
               .then((list) => {
@@ -62,6 +64,7 @@ export default function EmployeesPage() {
       if (!res.ok) throw new Error("Unable to retrieve employee records.");
       const data = await res.json();
       setEmployees(data);
+      setPage(1);
     } catch (err: any) {
       setError(err.message || "Something went wrong while retrieving employee records.");
     } finally {
@@ -73,7 +76,6 @@ export default function EmployeesPage() {
     fetchEmployees();
   }, [department, status]);
 
-  // Handle live search with simple debounce
   useEffect(() => {
     const timer = setTimeout(() => {
       fetchEmployees();
@@ -81,13 +83,17 @@ export default function EmployeesPage() {
     return () => clearTimeout(timer);
   }, [search]);
 
-  // Collect unique departments
   const uniqueDepartments = Array.from(
     new Set(employees.map((e) => e.department).filter(Boolean) as string[])
   );
 
   const activeEmployees = employees.filter((e) => e.status === "ACTIVE");
   const inactiveEmployees = employees.filter((e) => e.status === "INACTIVE");
+
+  const totalPages = Math.max(1, Math.ceil(employees.length / PAGE_SIZE));
+  const pagedEmployees = employees.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+  const rangeStart = employees.length === 0 ? 0 : (page - 1) * PAGE_SIZE + 1;
+  const rangeEnd = Math.min(page * PAGE_SIZE, employees.length);
 
   if (currentUserRole === "EMPLOYEE") {
     return (
@@ -118,7 +124,6 @@ export default function EmployeesPage() {
       }
     >
       <div className="space-y-4">
-        {/* Header Description */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
           <div>
             <p className="text-xs text-[#77717B]">
@@ -130,7 +135,6 @@ export default function EmployeesPage() {
           </div>
         </div>
 
-        {/* Filters */}
         <EmployeeFilters
           search={search}
           onSearchChange={setSearch}
@@ -143,7 +147,6 @@ export default function EmployeesPage() {
           departments={uniqueDepartments}
         />
 
-        {/* Error Banner */}
         {error && (
           <div className="p-4 bg-[#FAECEC] border border-[#E9C3C3] rounded-lg text-xs text-[#9A4E4E] flex items-center justify-between">
             <div>
@@ -159,7 +162,6 @@ export default function EmployeesPage() {
           </div>
         )}
 
-        {/* Loading Skeleton */}
         {loading && (
           <>
             {viewMode === "list" ? (
@@ -170,7 +172,6 @@ export default function EmployeesPage() {
           </>
         )}
 
-        {/* Empty State */}
         {!loading && !error && employees.length === 0 && (
           <EmptyState
             icon={<Users className="w-6 h-6" />}
@@ -192,15 +193,41 @@ export default function EmployeesPage() {
           />
         )}
 
-        {/* Data View */}
         {!loading && !error && employees.length > 0 && (
           <>
             {viewMode === "list" ? (
-              <EmployeeTable employees={employees} />
+              <>
+                <EmployeeTable employees={pagedEmployees} />
+                <div className="flex items-center justify-between px-1 pt-1">
+                  <span className="text-xs text-[#77717B]">
+                    Showing {rangeStart}–{rangeEnd} of {employees.length}
+                  </span>
+                  <div className="flex items-center gap-1">
+                    <button
+                      disabled={page <= 1}
+                      onClick={() => setPage((p) => Math.max(1, p - 1))}
+                      className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-md border border-[#E8E3EA] bg-white text-xs font-medium text-[#524E57] hover:bg-[#F9F8FA] disabled:opacity-40 disabled:cursor-not-allowed"
+                    >
+                      <ChevronLeft className="w-3.5 h-3.5" />
+                      Prev
+                    </button>
+                    <span className="text-xs text-[#524E57] px-2">
+                      Page {page} of {totalPages}
+                    </span>
+                    <button
+                      disabled={page >= totalPages}
+                      onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                      className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-md border border-[#E8E3EA] bg-white text-xs font-medium text-[#524E57] hover:bg-[#F9F8FA] disabled:opacity-40 disabled:cursor-not-allowed"
+                    >
+                      Next
+                      <ChevronRight className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                </div>
+              </>
             ) : (
-              /* Kanban Columns: ACTIVE vs INACTIVE */
+              /* Kanban Columns: ACTIVE vs INACTIVE — unchanged, unpaginated */
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
-                {/* Active Column */}
                 <div className="bg-[#F9F8FA]/80 border border-[#E8E3EA] rounded-lg p-3">
                   <div className="flex items-center justify-between mb-3 px-1">
                     <div className="flex items-center gap-2">
@@ -225,7 +252,6 @@ export default function EmployeesPage() {
                   </div>
                 </div>
 
-                {/* Inactive Column */}
                 <div className="bg-[#F9F8FA]/80 border border-[#E8E3EA] rounded-lg p-3">
                   <div className="flex items-center justify-between mb-3 px-1">
                     <div className="flex items-center gap-2">
