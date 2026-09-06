@@ -70,6 +70,18 @@ export default function SalaryStructuresPage() {
   const [ruleSequence, setRuleSequence] = useState(1);
   const [assignLoading, setAssignLoading] = useState(false);
 
+  const [canManage, setCanManage] = useState(false);
+
+  useEffect(() => {
+    try {
+      const userStr = localStorage.getItem('user');
+      if (userStr) {
+        const user = JSON.parse(userStr);
+        setCanManage(user.role === 'ADMIN' || user.role === 'HR_PAYROLL_MANAGER');
+      }
+    } catch {}
+  }, []);
+
   const fetchStructures = async () => {
     try {
       setLoading(true);
@@ -206,13 +218,15 @@ export default function SalaryStructuresPage() {
             <FileCode className="w-4 h-4 mr-2 text-indigo-600" />
             Manage Rules
           </Link>
-          <button
-            onClick={() => setShowCreateModal(true)}
-            className="inline-flex items-center px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-sm font-medium transition shadow-sm"
-          >
-            <Plus className="w-4 h-4 mr-2" />
-            New Structure
-          </button>
+          {canManage && (
+            <button
+              onClick={() => setShowCreateModal(true)}
+              className="inline-flex items-center px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-sm font-medium transition shadow-sm"
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              New Structure
+            </button>
+          )}
         </div>
       </div>
 
@@ -274,7 +288,7 @@ export default function SalaryStructuresPage() {
                 </p>
               </div>
 
-              {selectedStructure && (
+              {selectedStructure && canManage && (
                 <button
                   onClick={() => {
                     setRuleSequence((structureRules.length + 1) * 10);

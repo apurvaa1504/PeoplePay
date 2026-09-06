@@ -55,6 +55,18 @@ export default function SalaryRulesPage() {
   const [percentage, setPercentage] = useState<string>('10');
   const [formula, setFormula] = useState<string>('BASIC * 0.1');
 
+  const [canManage, setCanManage] = useState(false);
+
+  useEffect(() => {
+    try {
+      const userStr = localStorage.getItem('user');
+      if (userStr) {
+        const user = JSON.parse(userStr);
+        setCanManage(user.role === 'ADMIN' || user.role === 'HR_PAYROLL_MANAGER');
+      }
+    } catch {}
+  }, []);
+
   const fetchRules = async () => {
     try {
       setLoading(true);
@@ -155,13 +167,15 @@ export default function SalaryRulesPage() {
             <Layers className="w-4 h-4 mr-2 text-indigo-600" />
             Salary Structures
           </Link>
-          <button
-            onClick={() => setShowModal(true)}
-            className="inline-flex items-center px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-sm font-medium transition shadow-sm"
-          >
-            <Plus className="w-4 h-4 mr-2" />
-            New Salary Rule
-          </button>
+          {canManage && (
+            <button
+              onClick={() => setShowModal(true)}
+              className="inline-flex items-center px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-sm font-medium transition shadow-sm"
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              New Salary Rule
+            </button>
+          )}
         </div>
       </div>
 

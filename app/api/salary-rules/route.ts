@@ -46,7 +46,7 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
-    const auth = requireAuth(req, ALLOWED_ROLES);
+    const auth = requireAuth(req, ['ADMIN', 'HR_PAYROLL_MANAGER']);
 
     if ('error' in auth) {
         return auth.error;

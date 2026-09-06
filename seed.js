@@ -10,10 +10,14 @@ const IDS = {
   adminUser: '00000000-0000-0000-0000-000000000001',
   hrUser: '00000000-0000-0000-0000-000000000002',
   empUser: '00000000-0000-0000-0000-000000000003',
+  hrPayrollUser: '00000000-0000-0000-0000-000000000004',
+  hrPayrollManager: '00000000-0000-0000-0000-000000000005',
   schedule: '00000000-0000-0000-0000-000000000010',
   emp1: '00000000-0000-0000-0000-000000000020',
   emp2: '00000000-0000-0000-0000-000000000021',
   emp3: '00000000-0000-0000-0000-000000000022',
+  emp4: '00000000-0000-0000-0000-000000000023',
+  emp5: '00000000-0000-0000-0000-000000000024',
   structure: '00000000-0000-0000-0000-000000000030',
   ruleBasic: '00000000-0000-0000-0000-000000000031',
   ruleHRA: '00000000-0000-0000-0000-000000000032',
@@ -46,13 +50,14 @@ async function main() {
 
   const passwordHash = await bcrypt.hash('password123', 10);
 
-  // Users
   await client.query(
     `INSERT INTO users (id, email, "passwordHash", role, "createdAt") VALUES
-     ($1, 'admin@peoplepay360.com', $4, 'ADMIN', now()),
-     ($2, 'hr@peoplepay360.com', $4, 'HR_MANAGER', now()),
-     ($3, 'employee@peoplepay360.com', $4, 'EMPLOYEE', now())`,
-    [IDS.adminUser, IDS.hrUser, IDS.empUser, passwordHash]
+     ($1, 'admin@peoplepay360.com', $6, 'ADMIN', now()),
+     ($2, 'hr@peoplepay360.com', $6, 'HR_MANAGER', now()),
+     ($3, 'employee@peoplepay360.com', $6, 'EMPLOYEE', now()),
+     ($4, 'payroll@peoplepay360.com', $6, 'HR_PAYROLL_USER', now()),
+     ($5, 'payroll_manager@peoplepay360.com', $6, 'HR_PAYROLL_MANAGER', now())`,
+    [IDS.adminUser, IDS.hrUser, IDS.empUser, IDS.hrPayrollUser, IDS.hrPayrollManager, passwordHash]
   );
 
   // Working schedule + lines
@@ -94,10 +99,12 @@ async function main() {
   // Employees
   await client.query(
     `INSERT INTO employees (id, "userId", "firstName", "lastName", department, "jobPosition", status, "scheduleId", "createdAt") VALUES
-     ($1, $4, 'Ananya', 'Admin', 'Human Resources', 'Administrator', 'ACTIVE', $7, now()),
-     ($2, $5, 'Priya', 'Sharma', 'Human Resources', 'HR Manager', 'ACTIVE', $7, now()),
-     ($3, $6, 'Rahul', 'Verma', 'Engineering', 'Software Engineer', 'ACTIVE', $7, now())`,
-    [IDS.emp1, IDS.emp2, IDS.emp3, IDS.adminUser, IDS.hrUser, IDS.empUser, IDS.schedule]
+     ($1, $6, 'Ananya', 'Admin', 'Human Resources', 'Administrator', 'ACTIVE', $11, now()),
+     ($2, $7, 'Priya', 'Sharma', 'Human Resources', 'HR Manager', 'ACTIVE', $11, now()),
+     ($3, $8, 'Rahul', 'Verma', 'Engineering', 'Software Engineer', 'ACTIVE', $11, now()),
+     ($4, $9, 'Neha', 'Patel', 'Finance', 'Payroll Specialist', 'ACTIVE', $11, now()),
+     ($5, $10, 'Vikram', 'Singh', 'Finance', 'Payroll Manager', 'ACTIVE', $11, now())`,
+    [IDS.emp1, IDS.emp2, IDS.emp3, IDS.emp4, IDS.emp5, IDS.adminUser, IDS.hrUser, IDS.empUser, IDS.hrPayrollUser, IDS.hrPayrollManager, IDS.schedule]
   );
 
   // Contracts
@@ -128,6 +135,8 @@ async function main() {
   console.log('  admin@peoplepay360.com (ADMIN)');
   console.log('  hr@peoplepay360.com (HR_MANAGER)');
   console.log('  employee@peoplepay360.com (EMPLOYEE)');
+  console.log('  payroll@peoplepay360.com (HR_PAYROLL_USER)');
+  console.log('  payroll_manager@peoplepay360.com (HR_PAYROLL_MANAGER)');
 
   await client.end();
 }

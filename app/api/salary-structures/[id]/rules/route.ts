@@ -68,7 +68,7 @@ export async function GET(req: NextRequest, { params }: RouteContext) {
 }
 
 export async function POST(req: NextRequest, { params }: RouteContext) {
-    const auth = requireAuth(req, ALLOWED_ROLES);
+    const auth = requireAuth(req, ['ADMIN', 'HR_PAYROLL_MANAGER']);
 
     if ('error' in auth) {
         return auth.error;

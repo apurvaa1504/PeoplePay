@@ -23,8 +23,6 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
     const auth = requireAuth(req, [
-        'HR_MANAGER',
-        'HR_PAYROLL_USER',
         'HR_PAYROLL_MANAGER',
         'ADMIN',
     ]);
