@@ -33,6 +33,7 @@ export default function LoginPage() {
       }
 
       localStorage.setItem("token", data.token);
+      localStorage.setItem("peoplepay_token", data.token);
       localStorage.setItem("user", JSON.stringify(data.user));
 
       if (data.user?.role === "EMPLOYEE" && data.user?.employeeId) {

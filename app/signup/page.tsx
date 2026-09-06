@@ -43,6 +43,7 @@ export default function SignupPage() {
       // Automatically log the user in if token returned or redirect to login
       if (data.token && data.user) {
         localStorage.setItem("token", data.token);
+        localStorage.setItem("peoplepay_token", data.token);
         localStorage.setItem("user", JSON.stringify(data.user));
         if (data.user.employeeId) {
           router.push(`/employees/${data.user.employeeId}`);

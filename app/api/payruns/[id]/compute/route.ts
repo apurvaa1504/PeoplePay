@@ -25,20 +25,40 @@ export async function POST(req: NextRequest, { params }: RouteContext) {
   }
 
   try {
-    const body = await req.json();
-    const { employeeIds } = body;
-
-    if (!Array.isArray(employeeIds) || employeeIds.length === 0 || !employeeIds.every(id => typeof id === 'string')) {
-      return NextResponse.json(
-        { error: 'employeeIds must be a non-empty array of strings' },
-        { status: 400 }
-      );
+    let employeeIds: string[] = [];
+    try {
+      const body = await req.json();
+      if (Array.isArray(body?.employeeIds)) {
+        employeeIds = body.employeeIds;
+      }
+    } catch {
+      // Empty or no json body - will auto-populate active employees below
     }
 
     // Fetch Payrun
     const payrun = await db.orm.public.Payrun.where({ id: payrunId }).first();
     if (!payrun) {
       return NextResponse.json({ error: 'Payrun not found' }, { status: 404 });
+    }
+
+    // If no employeeIds supplied, find all employees with active contracts in this period
+    if (employeeIds.length === 0) {
+      const allContracts = await db.orm.public.Contract.all();
+      const pStart = new Date(payrun.periodStart).getTime();
+      const pEnd = new Date(payrun.periodEnd).getTime();
+      const matching = allContracts.filter(c => {
+        const cStart = new Date(c.startDate).getTime();
+        const cEnd = c.endDate ? new Date(c.endDate).getTime() : null;
+        return cStart <= pEnd && (cEnd === null || cEnd >= pStart);
+      });
+      employeeIds = Array.from(new Set(matching.map(c => c.employeeId)));
+    }
+
+    if (employeeIds.length === 0) {
+      return NextResponse.json(
+        { error: 'No eligible employees found with active contracts for this payrun period.' },
+        { status: 400 }
+      );
     }
     if (payrun.status !== 'DRAFT') {
       return NextResponse.json(

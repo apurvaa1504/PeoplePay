@@ -55,7 +55,10 @@ export function NewPayrunDialog({ isOpen, onClose, onSuccess }: NewPayrunDialogP
       const fetchStructures = async () => {
         try {
           setFetchingStructures(true);
-          const token = typeof window !== "undefined" ? localStorage.getItem("peoplepay_token") : null;
+          const token =
+            typeof window !== "undefined"
+              ? localStorage.getItem("peoplepay_token") || localStorage.getItem("token")
+              : null;
           const headers: Record<string, string> = {};
           if (token) headers["Authorization"] = `Bearer ${token}`;
 
@@ -98,7 +101,10 @@ export function NewPayrunDialog({ isOpen, onClose, onSuccess }: NewPayrunDialogP
     setSelectedEmployeeIds([]);
 
     try {
-      const token = typeof window !== "undefined" ? localStorage.getItem("peoplepay_token") : null;
+      const token =
+        typeof window !== "undefined"
+          ? localStorage.getItem("peoplepay_token") || localStorage.getItem("token")
+          : null;
       const headers: Record<string, string> = {};
       if (token) headers["Authorization"] = `Bearer ${token}`;
 
@@ -131,7 +137,10 @@ export function NewPayrunDialog({ isOpen, onClose, onSuccess }: NewPayrunDialogP
     setExecuteWarnings([]);
 
     try {
-      const token = typeof window !== "undefined" ? localStorage.getItem("peoplepay_token") : null;
+      const token =
+        typeof window !== "undefined"
+          ? localStorage.getItem("peoplepay_token") || localStorage.getItem("token")
+          : null;
       const headers: Record<string, string> = { "Content-Type": "application/json" };
       if (token) headers["Authorization"] = `Bearer ${token}`;
 
@@ -252,14 +261,16 @@ export function NewPayrunDialog({ isOpen, onClose, onSuccess }: NewPayrunDialogP
       )}
 
       {step === 2 && (
-        <div className="h-[400px] flex flex-col">
-          <EmployeeSelectionStep
-            employees={employees}
-            selectedEmployeeIds={selectedEmployeeIds}
-            onChange={setSelectedEmployeeIds}
-            loading={fetchingEmployees}
-            error={employeeError}
-          />
+        <div className="flex flex-col max-h-[70vh]">
+          <div className="min-h-0 flex-1 max-h-[360px] overflow-hidden flex flex-col">
+            <EmployeeSelectionStep
+              employees={employees}
+              selectedEmployeeIds={selectedEmployeeIds}
+              onChange={setSelectedEmployeeIds}
+              loading={fetchingEmployees}
+              error={employeeError}
+            />
+          </div>
 
           {executeError && (
             <div className="mt-4 p-3 bg-red-50 text-red-600 text-sm rounded-md flex items-start">
