@@ -45,19 +45,33 @@ export default function DashboardPage() {
       try {
         setLoading(true);
 
-        // Parallel fetch for Person A's data + teammate endpoints
+        const token =
+          typeof window !== "undefined"
+            ? localStorage.getItem("peoplepay_token") || localStorage.getItem("token")
+            : null;
+
+        const authHeader: Record<string, string> = token
+          ? { Authorization: `Bearer ${token}` }
+          : {};
+
+        // Parallel fetch with authorization headers
         const [empRes, contractRes, attRes, leaveRes, payrunRes] = await Promise.all([
-          fetch("/api/employees").catch(() => null),
-          fetch("/api/contracts").catch(() => null),
-          fetch("/api/attendance").catch(() => null),
-          fetch("/api/time-off-requests").catch(() => null),
-          fetch("/api/payruns").catch(() => null),
+          fetch("/api/employees", { headers: authHeader }).catch(() => null),
+          fetch("/api/contracts", { headers: authHeader }).catch(() => null),
+          fetch("/api/attendance", { headers: authHeader }).catch(() => null),
+          fetch("/api/time-off-requests", { headers: authHeader }).catch(() => null),
+          fetch("/api/payruns", { headers: authHeader }).catch(() => null),
         ]);
 
         const employees = empRes && empRes.ok ? await empRes.json() : [];
         const contracts = contractRes && contractRes.ok ? await contractRes.json() : [];
         const attendances = attRes && attRes.ok ? await attRes.json() : [];
-        const leaves = leaveRes && leaveRes.ok ? await leaveRes.json() : [];
+        const leaveData = leaveRes && leaveRes.ok ? await leaveRes.json() : [];
+        const leaves = Array.isArray(leaveData)
+          ? leaveData
+          : Array.isArray(leaveData?.requests)
+          ? leaveData.requests
+          : [];
         const payruns = payrunRes && payrunRes.ok ? await payrunRes.json() : [];
 
         // 1. Employee metrics

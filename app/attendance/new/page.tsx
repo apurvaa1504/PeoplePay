@@ -9,12 +9,15 @@ export default function NewAttendancePage() {
   const [employees, setEmployees] = useState<EmployeeRecord[]>([]);
   const [currentEmployee, setCurrentEmployee] = useState<EmployeeRecord | null>(null);
 
+  const [isEmployeeRole, setIsEmployeeRole] = useState(false);
+
   useEffect(() => {
     async function loadEmployees() {
       try {
         const stored = localStorage.getItem("user");
         const parsed = stored ? JSON.parse(stored) : null;
         const isEmployee = parsed?.role === "EMPLOYEE";
+        setIsEmployeeRole(isEmployee);
 
         if (isEmployee && parsed?.employeeId) {
           const res = await fetch(`/api/employees/${parsed.employeeId}`);
@@ -43,14 +46,16 @@ export default function NewAttendancePage() {
       breadcrumbs={[
         { label: "Operations", href: "/attendance" },
         { label: "Attendance", href: "/attendance" },
-        { label: "Record Entry" },
+        { label: isEmployeeRole ? "Shift Punch Clock" : "Record Entry" },
       ]}
-      title="Record Attendance"
+      title={isEmployeeRole ? "Attendance Punch Clock" : "Record Attendance"}
     >
       <div className="space-y-4">
         <div>
           <p className="text-xs text-[#77717B]">
-            Log a new check-in and check-out timestamp. Worked hours will be automatically calculated.
+            {isEmployeeRole
+              ? "Check in and check out with real-time timestamps to accurately compute and record your shift work hours."
+              : "Log a new check-in and check-out timestamp. Worked hours will be automatically calculated."}
           </p>
         </div>
         <AttendanceForm employees={employees} currentEmployee={currentEmployee} />

@@ -451,6 +451,7 @@ export default function PayslipDetailPage({ params }: { params: Promise<{ id: st
           </div>
         </div>
       </div>
+    </div>
     </AppShell>
   );
 }
