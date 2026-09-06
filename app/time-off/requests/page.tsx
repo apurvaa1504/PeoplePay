@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState, Suspense } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { api, ApiError } from "@/lib/apiClient";
 import { Button } from "@/components/ui/Button";
@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/Input";
 import { Badge } from "@/components/ui/Badge";
 import { Modal } from "@/components/ui/Modal";
 import { Select } from "@/components/ui/Select";
-import { Plus } from "lucide-react";
+import { Plus, ChevronLeft, ChevronRight } from "lucide-react";
 
 interface TimeOffRequest {
   id: string;
@@ -33,25 +33,54 @@ interface TimeOffType {
   name: string;
 }
 
-const STATUS_ORDER: Record<string, number> = { PENDING: 0, APPROVED: 1, REFUSED: 1 };
+interface PaginationMeta {
+  page: number;
+  pageSize: number;
+  total: number;
+  totalPages: number;
+}
+
+const PAGE_SIZE = 10;
+const SEARCH_DEBOUNCE_MS = 350;
+
+function getStoredUser() {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = localStorage.getItem("user");
+    return raw ? JSON.parse(raw) : null;
+  } catch {
+    return null;
+  }
+}
 
 function RequestsContent() {
   const searchParams = useSearchParams();
   const employeeFilter = searchParams.get("employeeId") || "";
 
+  const [currentUser] = useState<any>(() => getStoredUser());
+  const currentUserRole: string = currentUser?.role || "EMPLOYEE";
+  const isEmployee = currentUserRole === "EMPLOYEE";
+
   const [requests, setRequests] = useState<TimeOffRequest[]>([]);
+  const [pagination, setPagination] = useState<PaginationMeta>({
+    page: 1,
+    pageSize: PAGE_SIZE,
+    total: 0,
+    totalPages: 1,
+  });
+  const [page, setPage] = useState(1);
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [types, setTypes] = useState<TimeOffType[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [actioningId, setActioningId] = useState<string | null>(null);
   const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
 
-  // Modal for new request
   const [modalOpen, setModalOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [form, setForm] = useState({
-    employeeId: employeeFilter || "",
+    employeeId: employeeFilter || (isEmployee ? currentUser?.employeeId || "" : ""),
     timeOffTypeId: "",
     startDate: "",
     endDate: "",
@@ -65,7 +94,7 @@ function RequestsContent() {
     const e = new Date(end);
     if (isNaN(s.getTime()) || isNaN(e.getTime())) return "1";
     const diffTime = e.getTime() - s.getTime();
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1; // inclusive
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
     return diffDays > 0 ? diffDays.toString() : "1";
   };
 
@@ -81,53 +110,57 @@ function RequestsContent() {
     setForm((prev) => ({ ...prev, endDate, duration }));
   };
 
-  const [currentUser, setCurrentUser] = useState<any>(null);
-  const [currentUserRole, setCurrentUserRole] = useState<string>("EMPLOYEE");
-
-  useEffect(() => {
-    try {
-      const user = localStorage.getItem("user");
-      if (user) {
-        const parsed = JSON.parse(user);
-        setCurrentUser(parsed);
-        setCurrentUserRole(parsed.role || "EMPLOYEE");
-        if (parsed.role === "EMPLOYEE" && parsed.employeeId) {
-          setForm((prev) => ({ ...prev, employeeId: parsed.employeeId }));
-        }
-      }
-    } catch {}
-  }, []);
-
-  async function loadAll() {
+  async function loadRequests(targetPage: number) {
     setLoading(true);
     setError("");
     try {
-      const [reqData, empData, typeData] = await Promise.all([
-        api.get("/api/time-off-requests"),
-        api.get("/api/employees"),
-        api.get("/api/time-off-types"),
-      ]);
+      const params = new URLSearchParams({
+        page: String(targetPage),
+        pageSize: String(PAGE_SIZE),
+      });
+      if (employeeFilter) params.set("employeeId", employeeFilter);
+      if (debouncedSearch) params.set("search", debouncedSearch);
+
+      const reqData = await api.get(`/api/time-off-requests?${params.toString()}`);
       setRequests(reqData.requests || []);
-      setEmployees(Array.isArray(empData) ? empData : empData.employees ?? []);
-      setTypes(typeData.timeOffTypes || []);
+      if (reqData.pagination) setPagination(reqData.pagination);
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Failed to load data");
+      setError(err instanceof ApiError ? err.message : "Failed to load requests");
     } finally {
       setLoading(false);
     }
   }
 
+  async function loadLookups() {
+    try {
+      const [empData, typeData] = await Promise.all([
+        api.get("/api/employees"),
+        api.get("/api/time-off-types"),
+      ]);
+      setEmployees(Array.isArray(empData) ? empData : empData.employees ?? []);
+      setTypes(typeData.timeOffTypes || []);
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : "Failed to load data");
+    }
+  }
+
   useEffect(() => {
-    loadAll();
+    loadLookups();
   }, []);
 
   useEffect(() => {
-    if (employeeFilter && !form.employeeId) {
-      setForm((prev) => ({ ...prev, employeeId: employeeFilter }));
-    } else if (currentUser?.role === "EMPLOYEE" && currentUser?.employeeId) {
-      setForm((prev) => ({ ...prev, employeeId: currentUser.employeeId }));
-    }
-  }, [employeeFilter, currentUser]);
+    const handle = setTimeout(() => setDebouncedSearch(search.trim()), SEARCH_DEBOUNCE_MS);
+    return () => clearTimeout(handle);
+  }, [search]);
+
+  useEffect(() => {
+    setPage(1);
+  }, [employeeFilter, debouncedSearch]);
+
+  useEffect(() => {
+    loadRequests(page);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [page, employeeFilter, debouncedSearch]);
 
   function employeeName(id: string) {
     const emp = employees.find((e) => e.id === id);
@@ -139,29 +172,14 @@ function RequestsContent() {
     return type ? type.name : id;
   }
 
-  const isEmployee = currentUserRole === "EMPLOYEE";
-
-  const visibleRequests = useMemo(() => {
-    let base = isEmployee
-      ? requests.filter((r) => r.employeeId === currentUser?.employeeId)
-      : employeeFilter
-      ? requests.filter((r) => r.employeeId === employeeFilter)
-      : requests;
-
-    const q = search.trim().toLowerCase();
-    if (q) {
-      base = base.filter((r) => employeeName(r.employeeId).toLowerCase().includes(q));
-    }
-
-    return [...base].sort((a, b) => STATUS_ORDER[a.status] - STATUS_ORDER[b.status]);
-  }, [requests, employees, search, isEmployee, employeeFilter, currentUser]);
+  const visibleRequests = requests;
 
   async function handleDecision(id: string, decision: "APPROVED" | "REFUSED") {
     setActioningId(id);
     setError("");
     try {
       await api.patch(`/api/time-off-requests/${id}/decision`, { decision });
-      await loadAll();
+      await loadRequests(page);
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "Failed to update request");
     } finally {
@@ -190,7 +208,11 @@ function RequestsContent() {
         endDate: "",
         duration: "1",
       });
-      await loadAll();
+      if (page === 1) {
+        await loadRequests(1);
+      } else {
+        setPage(1);
+      }
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "Failed to submit request");
     } finally {
@@ -209,6 +231,9 @@ function RequestsContent() {
     currentUserRole === "HR_MANAGER" ||
     currentUserRole === "HR_PAYROLL_USER" ||
     currentUserRole === "HR_PAYROLL_MANAGER";
+
+  const rangeStart = pagination.total === 0 ? 0 : (pagination.page - 1) * pagination.pageSize + 1;
+  const rangeEnd = Math.min(pagination.page * pagination.pageSize, pagination.total);
 
   return (
     <div className="space-y-4">
@@ -245,24 +270,12 @@ function RequestsContent() {
         <table className="w-full text-sm">
           <thead className="bg-[#F9F8FA] border-b border-[#E8E3EA]">
             <tr>
-              <th className="text-left px-4 py-2.5 font-semibold text-[#524E57] text-xs uppercase tracking-wider">
-                Employee
-              </th>
-              <th className="text-left px-4 py-2.5 font-semibold text-[#524E57] text-xs uppercase tracking-wider">
-                Type
-              </th>
-              <th className="text-left px-4 py-2.5 font-semibold text-[#524E57] text-xs uppercase tracking-wider">
-                Dates
-              </th>
-              <th className="text-left px-4 py-2.5 font-semibold text-[#524E57] text-xs uppercase tracking-wider">
-                Duration (Days)
-              </th>
-              <th className="text-left px-4 py-2.5 font-semibold text-[#524E57] text-xs uppercase tracking-wider">
-                Status
-              </th>
-              <th className="px-4 py-2.5 text-right font-semibold text-[#524E57] text-xs uppercase tracking-wider">
-                Action
-              </th>
+              <th className="text-left px-4 py-2.5 font-semibold text-[#524E57] text-xs uppercase tracking-wider">Employee</th>
+              <th className="text-left px-4 py-2.5 font-semibold text-[#524E57] text-xs uppercase tracking-wider">Type</th>
+              <th className="text-left px-4 py-2.5 font-semibold text-[#524E57] text-xs uppercase tracking-wider">Dates</th>
+              <th className="text-left px-4 py-2.5 font-semibold text-[#524E57] text-xs uppercase tracking-wider">Duration (Days)</th>
+              <th className="text-left px-4 py-2.5 font-semibold text-[#524E57] text-xs uppercase tracking-wider">Status</th>
+              <th className="px-4 py-2.5 text-right font-semibold text-[#524E57] text-xs uppercase tracking-wider">Action</th>
             </tr>
           </thead>
           <tbody>
@@ -282,38 +295,23 @@ function RequestsContent() {
             )}
             {visibleRequests.map((r) => (
               <tr key={r.id} className="border-b border-[#F3F2F5] last:border-0 hover:bg-[#FCFBFD]">
-                <td className="px-4 py-3 font-medium text-[#26232A]">
-                  {employeeName(r.employeeId)}
-                </td>
+                <td className="px-4 py-3 font-medium text-[#26232A]">{employeeName(r.employeeId)}</td>
                 <td className="px-4 py-3 text-[#524E57]">{typeName(r.timeOffTypeId)}</td>
                 <td className="px-4 py-3 text-[#77717B] text-xs">
-                  {new Date(r.startDate).toLocaleDateString()} –{" "}
-                  {new Date(r.endDate).toLocaleDateString()}
+                  {new Date(r.startDate).toLocaleDateString()} – {new Date(r.endDate).toLocaleDateString()}
                 </td>
                 <td className="px-4 py-3 text-[#524E57]">{r.duration}</td>
                 <td className="px-4 py-3">
-                  <Badge variant={statusVariant[r.status]} size="sm">
-                    {r.status}
-                  </Badge>
+                  <Badge variant={statusVariant[r.status]} size="sm">{r.status}</Badge>
                 </td>
                 <td className="px-4 py-3 text-right space-x-2">
                   {r.status === "PENDING" ? (
                     canApprove ? (
                       <>
-                        <Button
-                          variant="secondary"
-                          size="sm"
-                          isLoading={actioningId === r.id}
-                          onClick={() => handleDecision(r.id, "APPROVED")}
-                        >
+                        <Button variant="secondary" size="sm" isLoading={actioningId === r.id} onClick={() => handleDecision(r.id, "APPROVED")}>
                           Approve
                         </Button>
-                        <Button
-                          variant="danger"
-                          size="sm"
-                          isLoading={actioningId === r.id}
-                          onClick={() => handleDecision(r.id, "REFUSED")}
-                        >
+                        <Button variant="danger" size="sm" isLoading={actioningId === r.id} onClick={() => handleDecision(r.id, "REFUSED")}>
                           Refuse
                         </Button>
                       </>
@@ -328,21 +326,34 @@ function RequestsContent() {
             ))}
           </tbody>
         </table>
+
+        {!loading && pagination.total > 0 && (
+          <div className="flex items-center justify-between px-4 py-2.5 border-t border-[#E8E3EA] bg-[#F9F8FA]">
+            <span className="text-xs text-[#77717B]">
+              Showing {rangeStart}–{rangeEnd} of {pagination.total}
+            </span>
+            <div className="flex items-center gap-1">
+              <Button variant="outline" size="sm" disabled={pagination.page <= 1} onClick={() => setPage((p) => Math.max(1, p - 1))} className="flex items-center gap-1">
+                <ChevronLeft className="w-3.5 h-3.5" />
+                Prev
+              </Button>
+              <span className="text-xs text-[#524E57] px-2">
+                Page {pagination.page} of {pagination.totalPages}
+              </span>
+              <Button variant="outline" size="sm" disabled={pagination.page >= pagination.totalPages} onClick={() => setPage((p) => Math.min(pagination.totalPages, p + 1))} className="flex items-center gap-1">
+                Next
+                <ChevronRight className="w-3.5 h-3.5" />
+              </Button>
+            </div>
+          </div>
+        )}
       </div>
 
-      {/* New Request Modal */}
-      <Modal
-        isOpen={modalOpen}
-        onClose={() => setModalOpen(false)}
-        title="Request Time Off"
-        maxWidth="sm"
-      >
+      <Modal isOpen={modalOpen} onClose={() => setModalOpen(false)} title="Request Time Off" maxWidth="sm">
         <form onSubmit={handleCreateRequest} className="space-y-4">
           {isEmployee ? (
             <div className="space-y-1.5">
-              <label className="block text-xs font-semibold text-[#26232A]">
-                Employee
-              </label>
+              <label className="block text-xs font-semibold text-[#26232A]">Employee</label>
               <div className="px-3 py-2 rounded-md bg-[#F9F8FA] border border-[#E8E3EA] flex items-center justify-between text-xs">
                 <span className="font-semibold text-[#26232A]">
                   {employeeName(currentUser?.employeeId || form.employeeId) || "Your Employee Record"}
@@ -362,10 +373,7 @@ function RequestsContent() {
               onChange={(e) => setForm({ ...form, employeeId: e.target.value })}
               options={[
                 { value: "", label: "Select employee..." },
-                ...employees.map((e) => ({
-                  value: e.id,
-                  label: `${e.firstName} ${e.lastName}`,
-                })),
+                ...employees.map((e) => ({ value: e.id, label: `${e.firstName} ${e.lastName}` })),
               ]}
               required
             />
@@ -381,21 +389,8 @@ function RequestsContent() {
             required
           />
           <div className="grid grid-cols-2 gap-3">
-            <Input
-              label="Start Date"
-              type="date"
-              value={form.startDate}
-              onChange={(e) => handleStartDateChange(e.target.value)}
-              required
-            />
-            <Input
-              label="End Date"
-              type="date"
-              min={form.startDate || undefined}
-              value={form.endDate}
-              onChange={(e) => handleEndDateChange(e.target.value)}
-              required
-            />
+            <Input label="Start Date" type="date" value={form.startDate} onChange={(e) => handleStartDateChange(e.target.value)} required />
+            <Input label="End Date" type="date" min={form.startDate || undefined} value={form.endDate} onChange={(e) => handleEndDateChange(e.target.value)} required />
           </div>
           <Input
             label="Duration (Days)"
@@ -407,14 +402,9 @@ function RequestsContent() {
             helperText="Automatically computed from start and end dates (can be fine-tuned e.g. for half-days)"
             required
           />
-
           <div className="flex justify-end gap-2 pt-2">
-            <Button type="button" variant="outline" onClick={() => setModalOpen(false)}>
-              Cancel
-            </Button>
-            <Button type="submit" isLoading={submitting}>
-              Submit Request
-            </Button>
+            <Button type="button" variant="outline" onClick={() => setModalOpen(false)}>Cancel</Button>
+            <Button type="submit" isLoading={submitting}>Submit Request</Button>
           </div>
         </form>
       </Modal>
@@ -424,11 +414,7 @@ function RequestsContent() {
 
 export default function TimeOffRequestsPage() {
   return (
-    <Suspense
-      fallback={
-        <div className="p-8 text-center text-xs text-[#77717B]">Loading requests...</div>
-      }
-    >
+    <Suspense fallback={<div className="p-8 text-center text-xs text-[#77717B]">Loading requests...</div>}>
       <RequestsContent />
     </Suspense>
   );
