@@ -77,48 +77,6 @@ export default function LoginPage() {
           </Button>
         </form>
 
-        {/* Quick Demo Credentials */}
-        <div className="mt-6 pt-4 border-t border-[#E8E3EA]">
-          <p className="text-[11px] font-semibold text-[#77717B] uppercase tracking-wider mb-2">
-            Quick Demo Logins (password123)
-          </p>
-          <div className="flex flex-col gap-1.5">
-            <button
-              type="button"
-              onClick={() => {
-                setEmail("admin@peoplepay360.com");
-                setPassword("password123");
-              }}
-              className="text-left px-2.5 py-1.5 rounded text-xs bg-[#F9F8FA] hover:bg-[#F1EBF3] text-[#524E57] hover:text-[#71547D] transition-colors flex items-center justify-between"
-            >
-              <span>admin@peoplepay360.com</span>
-              <span className="text-[10px] font-semibold text-[#9B7FA6]">ADMIN</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                setEmail("hr@peoplepay360.com");
-                setPassword("password123");
-              }}
-              className="text-left px-2.5 py-1.5 rounded text-xs bg-[#F9F8FA] hover:bg-[#F1EBF3] text-[#524E57] hover:text-[#71547D] transition-colors flex items-center justify-between"
-            >
-              <span>hr@peoplepay360.com</span>
-              <span className="text-[10px] font-semibold text-[#9B7FA6]">HR_MANAGER</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                setEmail("employee@peoplepay360.com");
-                setPassword("password123");
-              }}
-              className="text-left px-2.5 py-1.5 rounded text-xs bg-[#F9F8FA] hover:bg-[#F1EBF3] text-[#524E57] hover:text-[#71547D] transition-colors flex items-center justify-between"
-            >
-              <span>employee@peoplepay360.com</span>
-              <span className="text-[10px] font-semibold text-[#9B7FA6]">EMPLOYEE</span>
-            </button>
-          </div>
-        </div>
-
         <p className="mt-4 text-xs text-[#77717B] text-center">
           Don't have an account?{" "}
           <a href="/signup" className="text-[#9B7FA6] font-medium">
